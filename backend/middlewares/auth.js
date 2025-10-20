@@ -1,26 +1,27 @@
-const jwt = require("jsonwebtoken")
-
+const jwt = require("jsonwebtoken");
 
 module.exports = function auth(req, res, next) {
     try {
-        const h = req.header.authorization || ''
+        // ✅ 올바른 헤더 접근
+        const h = req.headers.authorization || '';
 
-        const token = h.startsWith('Bearer')
+        // ✅ Bearer 토큰 형식 처리 + 쿠키 fallback
+        const token = h.startsWith('Bearer ')
             ? h.slice(7)
-            : (req.cookies?.token || null)
+            : (req.cookies?.token || null);
 
         if (!token) {
-            return res.status(401).json({ message: "인증 필요" })
+            return res.status(401).json({ message: "인증 필요" });
         }
 
-        req.user = jwt.verify(token, process.env.JWT_SECRET)
+        // ✅ JWT 검증
+        req.user = jwt.verify(token, process.env.JWT_SECRET);
 
-        return next()
+        return next();
     } catch (error) {
-
         return res.status(401).json({
             message: "토큰 무효",
             error: error.message
-        })
+        });
     }
-}
+};
