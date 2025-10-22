@@ -1,5 +1,10 @@
 import React, { useState } from "react";
-import { uploadMemo, getErrorMessage } from "../../api/client";
+import {
+    getPresignedUrl,
+    uploadToS3,
+    uploadMemo,
+    getErrorMessage,
+} from "../../api/client";
 import "./style/UploadForm.scss";
 
 const UploadForm = () => {
@@ -11,7 +16,7 @@ const UploadForm = () => {
     const [tripThumbnail, setTripThumbnail] = useState(null);
     const [thumbnailPreview, setThumbnailPreview] = useState(null);
     const [days, setDays] = useState([
-        { label: "일상", memos: [{ title: "", content: "", image: null }] }
+        { label: "일상", memos: [{ title: "", content: "", image: null }] },
     ]);
     const [status, setStatus] = useState("");
 
@@ -59,7 +64,7 @@ const UploadForm = () => {
             date: new Date(startDate.getTime() + i * 86400000)
                 .toISOString()
                 .split("T")[0],
-            memos: [{ title: "", content: "", image: null }]
+            memos: [{ title: "", content: "", image: null }],
         }));
 
         setDays(newDays);
@@ -86,38 +91,62 @@ const UploadForm = () => {
         setDays(updated);
     };
 
-    // ✅ 업로드
+    // ✅ 업로드 처리
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         try {
             setStatus("📤 업로드 중...");
 
+            // 🔹 일상 모드
             if (type === "일상") {
-                // 일상 모드 업로드
                 for (const memo of days[0].memos) {
                     if (!memo.title || !memo.image) continue;
+
+                    // presign → S3 업로드
+                    const { url } = await getPresignedUrl(memo.image.name, memo.image.type);
+                    const imageUrl = await uploadToS3(memo.image, url);
+
+                    // DB 저장
                     await uploadMemo({
-                        type,
-                        date,
                         title: memo.title,
                         content: memo.content,
-                        image: memo.image
+                        category: type,
+                        image: { imageUrl },
                     });
                 }
-            } else {
-                // 여행 모드 업로드
+            }
+
+            // 🔹 여행 모드
+            else {
+                // ✅ 썸네일 S3 업로드 (선택 시)
+                let thumbnailUrl = null;
+                if (tripThumbnail) {
+                    const { url } = await getPresignedUrl(
+                        tripThumbnail.name,
+                        tripThumbnail.type
+                    );
+                    thumbnailUrl = await uploadToS3(tripThumbnail, url);
+                }
+
                 for (const day of days) {
                     for (const memo of day.memos) {
                         if (!memo.title || !memo.image) continue;
+
+                        // presign → S3 업로드
+                        const { url } = await getPresignedUrl(memo.image.name, memo.image.type);
+                        const imageUrl = await uploadToS3(memo.image, url);
+
+                        // DB 저장
                         await uploadMemo({
-                            type,
+                            title: memo.title,
+                            content: memo.content,
+                            category: type,
                             tripName: tripTitle,
                             tripStartDate: tripStart,
                             tripEndDate: tripEnd,
                             day: day.label,
-                            title: memo.title,
-                            content: memo.content,
-                            image: memo.image
+                            image: { imageUrl, thumbnailUrl },
                         });
                     }
                 }
@@ -125,6 +154,7 @@ const UploadForm = () => {
 
             setStatus("✅ 업로드 완료!");
         } catch (err) {
+            console.error(err);
             setStatus(`❌ 실패: ${getErrorMessage(err)}`);
         }
     };
@@ -134,7 +164,7 @@ const UploadForm = () => {
             <h2>포토메모 업로드</h2>
 
             <form onSubmit={handleSubmit}>
-                {/* ✅ 카테고리 */}
+                {/* ✅ 카테고리 선택 */}
                 <select value={type} onChange={handleTypeChange}>
                     <option value="일상">일상</option>
                     <option value="여행">여행</option>
@@ -142,14 +172,12 @@ const UploadForm = () => {
 
                 {/* ✅ 일상 모드 */}
                 {type === "일상" && (
-                    <>
-                        <input
-                            type="date"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                            required
-                        />
-                    </>
+                    <input
+                        type="date"
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        required
+                    />
                 )}
 
                 {/* ✅ 여행 모드 */}
@@ -206,7 +234,7 @@ const UploadForm = () => {
                     </>
                 )}
 
-                {/* ✅ 렌더링 (일상 + 여행 공통) */}
+                {/* ✅ 렌더링 (일상 + 여행 공통 구조) */}
                 {days.map((day, dayIndex) => (
                     <div key={dayIndex} className="day-section">
                         {type === "여행" && <h3 className="day-title">{day.label}</h3>}
@@ -246,18 +274,14 @@ const UploadForm = () => {
                                     type="file"
                                     accept="image/*"
                                     onChange={(e) =>
-                                        handleChange(
-                                            dayIndex,
-                                            memoIndex,
-                                            "image",
-                                            e.target.files[0]
-                                        )
+                                        handleChange(dayIndex, memoIndex, "image", e.target.files[0])
                                     }
                                     required
                                 />
                             </div>
                         ))}
 
+                        {/* 메모 추가 버튼 */}
                         <button
                             type="button"
                             className="add-btn"

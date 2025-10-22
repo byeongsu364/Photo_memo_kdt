@@ -36,9 +36,9 @@ export function getErrorMessage(error, fallback = "요청 실패") {
     return error.response?.data?.message || error.message || fallback;
 }
 
-// ==============================
-// 🧾 인증 관련 API
-// ==============================
+/* ============================================================
+   🧾 인증 관련 API
+============================================================ */
 
 // ✅ 회원가입
 export async function register({ email, password, displayName }) {
@@ -78,21 +78,51 @@ export function clearAuthStorage() {
     localStorage.removeItem("token");
 }
 
-// ==============================
-// 📸 포토메모 관련 API
-// ==============================
+/* ============================================================
+   ☁️ S3 Presigned URL 관련 API
+============================================================ */
 
-// ✅ 포토메모 업로드
-export async function uploadMemo({ title, content, image, category }) {
-    const formData = new FormData();
-    formData.append("title", title);
-    formData.append("content", content);
-    formData.append("category", category);
-    formData.append("image", image);
-
-    const { data } = await api.post("/api/memo", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+// ✅ presign 요청 → S3 업로드 URL 발급
+export async function getPresignedUrl(filename, contentType) {
+    const { data } = await api.post("/api/upload/presign", {
+        filename,
+        contentType,
     });
+    return data; // { url, key }
+}
+
+// ✅ S3로 직접 업로드
+export async function uploadToS3(file, url) {
+    await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+    });
+
+    // S3에 실제로 올라간 URL 반환
+    return url.split("?")[0];
+}
+
+/* ============================================================
+   📸 포토메모 관련 API
+============================================================ */
+
+// ✅ 포토메모 업로드 (S3 → DB)
+export async function uploadMemo({ title, content, category, image }) {
+    // 1️⃣ presign URL 요청
+    const { url, key } = await getPresignedUrl(image.name, image.type);
+
+    // 2️⃣ S3 직접 업로드
+    const imageUrl = await uploadToS3(image, url);
+
+    // 3️⃣ DB에 포토메모 정보 저장
+    const { data } = await api.post("/api/memo", {
+        title,
+        content,
+        category,
+        imageUrl, // ⚡ 이제 S3 URL만 저장
+    });
+
     return data;
 }
 
@@ -110,15 +140,18 @@ export async function deleteMemo(id) {
 
 // ✅ 포토메모 수정 (이미지 교체 포함)
 export async function updateMemo(id, { title, content, category, image }) {
-    const form = new FormData();
-    if (title) form.append("title", title);
-    if (content) form.append("content", content);
-    if (category) form.append("category", category);
-    if (image) form.append("image", image);
+    let imageUrl;
 
-    const { data } = await api.put(`/api/memo/${id}`, form, {
-        headers: { "Content-Type": "multipart/form-data" },
-    });
+    // 새 이미지가 있으면 presign 받아서 교체
+    if (image) {
+        const { url } = await getPresignedUrl(image.name, image.type);
+        imageUrl = await uploadToS3(image, url);
+    }
+
+    const payload = { title, content, category };
+    if (imageUrl) payload.imageUrl = imageUrl;
+
+    const { data } = await api.put(`/api/memo/${id}`, payload);
     return data;
 }
 

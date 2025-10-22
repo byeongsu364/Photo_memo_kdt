@@ -7,6 +7,11 @@ import Header from './components/Header'
 import ProtectRoute from './components/ProtectRoute'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import UserDashboard from './pages/user/UserDashboard'
+
+// ✅ 추가
+import UploadForm from "./pages/user/UploadForm"
+import FileList from "./pages/user/FileList"
+
 import {
   fetchMe as apifetchMe,
   logout as apilogout,
@@ -18,21 +23,19 @@ function App() {
 
   const [user, setUser] = useState(() => {
     const raw = localStorage.getItem('user')
-
     return raw ? JSON.parse(raw) : null
   })
 
   const [token, setToken] = useState(() => {
-    localStorage.getItem('token')
+    return localStorage.getItem('token')
   })
-  
+
   const [me, setMe] = useState(null)
-  
   const isAuthed = !!token
-  
-  const hideOn = new Set(['/','/admin/login'])
+
+  const hideOn = new Set(['/', '/admin/login'])
   const showHeader = isAuthed && !hideOn.has(location.pathname)
-  
+
   const HandleAuthed = async ({ user, token }) => {
     try {
       setUser(user)
@@ -48,7 +51,7 @@ function App() {
     try {
       await apilogout()
     } catch (error) {
-
+      console.error(error)
     } finally {
       setUser(null)
       setToken(null)
@@ -73,44 +76,56 @@ function App() {
 
   return (
     <div className="page">
-      {showHeader && <Header
-      isAuthed={isAuthed}
-      user={user}
-      onLogout={handleLogout}
-      />}
+      {showHeader && (
+        <Header
+          isAuthed={isAuthed}
+          user={user}
+          onLogout={handleLogout}
+        />
+      )}
 
       <Routes>
+        {/* ✅ 랜딩 페이지 */}
         <Route path="/" element={<Landing />} />
-        {/*로그인 회원가입 */}
+
+        {/* ✅ 관리자 로그인 / 회원가입 */}
         <Route
           path="/admin/login"
-          element={<AuthPanel
-            isAuthed={isAuthed}
-            user={user}
-            me={me}
-            onFetchMe={handleFetchMe}
-            onLogout={handleLogout}
-            onAuthed={HandleAuthed}
-            requiredRole="admin"
-          />}
+          element={
+            <AuthPanel
+              isAuthed={isAuthed}
+              user={user}
+              me={me}
+              onFetchMe={handleFetchMe}
+              onLogout={handleLogout}
+              onAuthed={HandleAuthed}
+              requiredRole="admin"
+            />
+          }
         />
-        {/*사용자 보호구역*/}
+
+        {/* ✅ 사용자 보호구역 */}
         <Route
-          path='/user'
+          path="/user"
           element={
             <ProtectRoute
               user={user}
               isAuthed={isAuthed}
-              redirect='/admin/login'
+              redirect="/admin/login"
             />
           }
         >
-          <Route index element={<Navigate to="/user/dashboard" replace/>}/>
-          <Route path='dashboard' element={<UserDashboard />}/>
+          <Route index element={<Navigate to="/user/dashboard" replace />} />
+          <Route path="dashboard" element={<UserDashboard />} />
+
+          {/* ✅ 새로 추가된 페이지들 */}
+          <Route path="upload" element={<UploadForm />} />
+          <Route path="files" element={<FileList />} />
         </Route>
-                {/* 관리자 보호구역 */}
+
+        {/* ✅ 관리자 보호구역 */}
         <Route
-          path='/admin'
+          path="/admin"
           element={
             <ProtectRoute
               isAuthed={isAuthed}
@@ -119,10 +134,12 @@ function App() {
             />
           }
         >
-          <Route index element={<Navigate to="/admin/dashboard" replace/>}/>
-          <Route path='dashboard' element={<AdminDashboard/>}/>
+          <Route index element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
         </Route>
-        <Route path='*' element={<Navigate to="/" replace />} />
+
+        {/* ✅ 없는 페이지 → 메인으로 리다이렉트 */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
   )

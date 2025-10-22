@@ -11,13 +11,14 @@
     flex-direction: column;
     align-items: center;
     gap: 2rem;
+    transition: all 0.25s ease;
 
     h2 {
-        font-size: 2rem;
+        font-size: 2.2rem;
         font-weight: 700;
         color: var(--text);
-        margin-bottom: 1rem;
         text-align: center;
+        margin-bottom: 0.4rem;
     }
 
     form {
@@ -41,6 +42,7 @@
             &:focus {
                 border-color: var(--focus);
                 box-shadow: 0 0 0.4rem rgba(91, 159, 255, 0.4);
+                outline: none;
             }
         }
 
@@ -49,7 +51,7 @@
             resize: vertical;
         }
 
-        /* ✅ 여행 제목 입력 */
+        /* ✅ 여행 제목 */
         .trip-title {
             display: flex;
             flex-direction: column;
@@ -86,10 +88,11 @@
                 background: var(--surface);
                 padding: 1rem;
                 cursor: pointer;
-                transition: 0.2s;
+                transition: 0.2s ease;
 
                 &:hover {
                     border-color: var(--primary);
+                    background: #f9faff;
                 }
             }
 
@@ -101,10 +104,11 @@
                 object-fit: cover;
                 border: 0.1rem solid var(--border);
                 background: #f7f7f7;
+                box-shadow: 0 0.2rem 0.6rem rgba(0, 0, 0, 0.05);
             }
         }
 
-        /* ✅ 여행 날짜 선택 */
+        /* ✅ 여행 기간 */
         .trip-range {
             display: flex;
             flex-direction: column;
@@ -142,10 +146,11 @@
             flex-direction: column;
             gap: 0.8rem;
             box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.05);
-            transition: background 0.2s ease;
+            transition: background 0.2s ease, transform 0.2s ease;
 
             &:hover {
-                background: #fefefe;
+                background: #fafafa;
+                transform: translateY(-2px);
             }
 
             .entry-header {
@@ -185,10 +190,11 @@
                 padding: 0.8rem;
                 background: var(--surface);
                 cursor: pointer;
-                transition: 0.2s;
+                transition: 0.2s ease;
 
                 &:hover {
                     border-color: var(--primary);
+                    background: #f9faff;
                 }
             }
         }
@@ -206,7 +212,7 @@
             transition: background 0.2s ease, transform 0.1s ease;
 
             &:hover {
-                background: #1c7ed6; // 직접 지정 (darken 제거)
+                background: #1c7ed6;
                 transform: translateY(-0.1rem);
             }
 
@@ -226,6 +232,7 @@
             border-radius: var(--radius-s);
             letter-spacing: 0.05rem;
             transition: 0.2s ease;
+            box-shadow: 0 0.3rem 0.6rem rgba(0, 0, 0, 0.1);
 
             &:hover {
                 background: #1c7ed6;
@@ -233,13 +240,14 @@
 
             &:active {
                 background: #1864ab;
+                transform: scale(0.98);
             }
         }
     }
 
     /* ✅ 상태 표시 */
     .status {
-        margin-top: 1rem;
+        margin-top: 1.2rem;
         font-size: 1.4rem;
         font-weight: 600;
         text-align: center;
@@ -279,6 +287,10 @@
                     font-size: 1.3rem;
                 }
             }
+        }
+
+        .trip-thumbnail .preview {
+            height: 10rem;
         }
     }
 }
