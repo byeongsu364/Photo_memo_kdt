@@ -3,13 +3,25 @@ import "./styles/Landing.scss"
 import { Link } from 'react-router-dom'
 
 const Landing = () => {
+    // ✅ 로그인 상태 확인 (token 존재 여부로 판단)
+    const isAuthed = !!localStorage.getItem("token");
+
     return (
         <section className="landing">
             <div className="container">
                 <div className="landing-hero">
                     <h1>포토메모</h1>
-                    <p className="landing-sub">사진 한 장, 한 줄 메모. 태그 · 검색 · 공유까지.</p>
-                    <Link to="/admin/login" className="btn btn-primary">시작하기</Link>
+                    <p className="landing-sub">
+                        사진 한 장, 한 줄 메모. 태그 · 검색 · 공유까지.
+                    </p>
+
+                    {/* ✅ 로그인 여부에 따라 이동 경로 변경 */}
+                    <Link
+                        to={isAuthed ? "/user/dashboard" : "/admin/login"}
+                        className="btn btn-primary"
+                    >
+                        시작하기
+                    </Link>
                 </div>
 
                 <ul className="landing-features">
@@ -28,7 +40,7 @@ const Landing = () => {
                 </ul>
             </div>
         </section>
-    )
-}
+    );
+};
 
-export default Landing
+export default Landing;
