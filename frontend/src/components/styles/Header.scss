@@ -1,28 +1,60 @@
 .site-header {
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    background: var(--bg);
+    border-bottom: 0.1rem solid var(--border);
+    padding: 1.2rem 2rem;
+    box-shadow: var(--shadow-soft);
 
     .inner {
         display: flex;
-        align-items: center;
         justify-content: space-between;
+        align-items: center;
+        max-width: 120rem;
+        margin: 0 auto;
+    }
 
-        h1.logo {
-            font-weight: 700;
-            font-size: 3.4rem;
-            color: var(--primary);
+    .logo {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+
+        .logo-link {
+            display: flex;
+            align-items: center;
+            color: inherit;
+            text-decoration: none;
+
+            &:hover {
+                opacity: 0.8;
+                transition: opacity 0.2s ease;
+            }
+        }
+    }
+
+    .auth-area {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
+        .welcome {
+            font-size: 1.4rem;
+            color: var(--text);
+            margin-right: 0.8rem;
         }
 
-        .auth-area {
-            .welcome {
-                display: inline-block;
-                font-size: 1.4rem;
-                color: var(--muted);
-            }
+        .btn.logout {
+            background: var(--danger);
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: var(--radius-s);
+            cursor: pointer;
+            transition: background 0.2s ease;
 
-            .btn {
-                margin-left: 1rem;
+            &:hover {
+                background: #dc2626;
             }
         }
     }

@@ -1,6 +1,8 @@
 import axios from "axios";
 
-// ✅ 환경 변수에서 API URL 가져오기
+/* ============================================================
+   🔧 Axios 기본 설정
+============================================================ */
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 const api = axios.create({
@@ -99,7 +101,7 @@ export async function uploadToS3(file, url) {
         body: file,
     });
 
-    // S3에 실제로 올라간 URL 반환
+    // 실제 접근 가능한 S3 URL 반환
     return url.split("?")[0];
 }
 
@@ -107,20 +109,16 @@ export async function uploadToS3(file, url) {
    📸 포토메모 관련 API
 ============================================================ */
 
-// ✅ 포토메모 업로드 (S3 → DB)
+// ✅ 포토메모 업로드
 export async function uploadMemo({ title, content, category, image }) {
-    // 1️⃣ presign URL 요청
     const { url, key } = await getPresignedUrl(image.name, image.type);
-
-    // 2️⃣ S3 직접 업로드
     const imageUrl = await uploadToS3(image, url);
 
-    // 3️⃣ DB에 포토메모 정보 저장
     const { data } = await api.post("/api/memo", {
         title,
         content,
         category,
-        imageUrl, // ⚡ 이제 S3 URL만 저장
+        imageUrl,
     });
 
     return data;
@@ -138,11 +136,9 @@ export async function deleteMemo(id) {
     return data;
 }
 
-// ✅ 포토메모 수정 (이미지 교체 포함)
+// ✅ 포토메모 수정
 export async function updateMemo(id, { title, content, category, image }) {
     let imageUrl;
-
-    // 새 이미지가 있으면 presign 받아서 교체
     if (image) {
         const { url } = await getPresignedUrl(image.name, image.type);
         imageUrl = await uploadToS3(image, url);
@@ -152,6 +148,52 @@ export async function updateMemo(id, { title, content, category, image }) {
     if (imageUrl) payload.imageUrl = imageUrl;
 
     const { data } = await api.put(`/api/memo/${id}`, payload);
+    return data;
+}
+
+/* ============================================================
+   📰 게시글(Post) 관련 API (오늘 수업 내용)
+============================================================ */
+
+// ✅ 게시글 작성 (로그인 필요)
+export async function createPost({ title, content, fileUrls = [], imageUrl }) {
+    const { data } = await api.post("/api/posts", {
+        title,
+        content,
+        fileUrl: fileUrls,
+        imageUrl,
+    });
+    return data;
+}
+
+// ✅ 전체 게시글 목록 조회 (공개)
+export async function fetchAllPosts() {
+    const { data } = await api.get("/api/posts");
+    return data;
+}
+
+// ✅ 내 게시글 목록 조회 (로그인 필요)
+export async function fetchMyPosts() {
+    const { data } = await api.get("/api/posts/my");
+    return data;
+}
+
+// ✅ 게시글 상세 조회 (공개)
+export async function fetchPostDetail(id) {
+    const { data } = await api.get(`/api/posts/${id}`);
+    return data;
+}
+
+// ✅ 게시글 수정 (로그인 + 본인만)
+export async function updatePost(id, { title, content, fileUrls, imageUrl }) {
+    const payload = { title, content, fileUrl: fileUrls, imageUrl };
+    const { data } = await api.put(`/api/posts/${id}`, payload);
+    return data;
+}
+
+// ✅ 게시글 삭제 (로그인 + 본인만)
+export async function deletePost(id) {
+    const { data } = await api.delete(`/api/posts/${id}`);
     return data;
 }
 

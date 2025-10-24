@@ -3,44 +3,51 @@ import "./styles/Landing.scss"
 import { Link } from 'react-router-dom'
 
 const Landing = () => {
-    // ✅ 로그인 상태 확인 (token 존재 여부로 판단)
-    const isAuthed = !!localStorage.getItem("token");
+    const isAuthed = !!localStorage.getItem("token")
 
     return (
         <section className="landing">
             <div className="container">
                 <div className="landing-hero">
-                    <h1>포토메모</h1>
+                    <h1>포토메모 게시판</h1>
                     <p className="landing-sub">
-                        사진 한 장, 한 줄 메모. 태그 · 검색 · 공유까지.
+                        사진과 글을 함께 남기는 공간. <br />
+                        당신의 이야기를 기록하세요 📸
                     </p>
 
-                    {/* ✅ 로그인 여부에 따라 이동 경로 변경 */}
-                    <Link
-                        to={isAuthed ? "/user/dashboard" : "/admin/login"}
-                        className="btn btn-primary"
-                    >
-                        시작하기
-                    </Link>
+                    <div className="landing-buttons">
+                        {/* ✅ 전체 글 보기 (누구나 가능) */}
+                        <Link to="/posts" className="btn btn-outline">
+                            시작하기
+                        </Link>
+
+                        {/* ✅ 로그인 상태면 대시보드로, 아니면 로그인 화면으로 */}
+                        <Link
+                            to={isAuthed ? "/user/dashboard" : "/admin/login"}
+                            className="btn primary"
+                        >
+                            글쓰기
+                        </Link>
+                    </div>
                 </div>
 
                 <ul className="landing-features">
                     <li>
                         <h3>빠른 기록</h3>
-                        <p>이미지 업로드 후 한 줄 메모로 즉시 저장.</p>
+                        <p>이미지와 함께 바로 게시글을 작성할 수 있습니다.</p>
                     </li>
                     <li>
-                        <h3>태그 & 검색</h3>
-                        <p>태그로 묶고 검색으로 바로 찾기.</p>
+                        <h3>전체 공유</h3>
+                        <p>모든 사용자가 작성한 글을 한눈에 볼 수 있습니다.</p>
                     </li>
                     <li>
-                        <h3>간단 공유</h3>
-                        <p>공유 링크로 가볍게 전달.</p>
+                        <h3>내 글 관리</h3>
+                        <p>내가 쓴 글은 대시보드에서 수정/삭제 가능합니다.</p>
                     </li>
                 </ul>
             </div>
         </section>
-    );
-};
+    )
+}
 
-export default Landing;
+export default Landing

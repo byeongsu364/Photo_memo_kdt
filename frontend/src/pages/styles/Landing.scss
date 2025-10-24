@@ -1,120 +1,64 @@
 .landing {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    background: var(--surface);
-    text-align: center;
-
     .landing-hero {
         padding: 6rem 0;
         background: linear-gradient(135deg, #f7f7ff, #fafafa);
         border-radius: var(--radius-l);
         margin-bottom: 3rem;
-        width: 100%;
-        max-width: 80rem;
-        box-shadow: var(--shadow-soft);
-
-        h1 {
-            font-size: 3.6rem;
-            font-weight: 800;
-            color: var(--text);
-        }
+        text-align: center;
 
         .landing-sub {
-            display: block;
-            margin: 1rem 0 2.4rem;
-            font-size: 1.6rem;
-            color: var(--muted);
+            margin: 1.5rem 0 2.5rem;
+            font-size: 1.4rem;
+            color: #555;
         }
 
-        /* ✅ 시작하기 버튼 */
-        .btn.btn-primary {
-            display: inline-block;
-            background: var(--primary);
-            color: var(--primary-contrast);
-            border: none;
-            border-radius: var(--radius-s);
-            padding: 1.2rem 2.4rem;
-            font-size: 1.6rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s ease, transform 0.1s ease;
-            text-decoration: none; /* 밑줄 제거 */
-            box-shadow: var(--shadow-soft);
+        .landing-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
 
-            &:hover {
-                background: var(--primary-hover);
-                transform: translateY(-0.1rem);
-            }
+            .btn {
+                padding: 1rem 2rem;
+                border-radius: 0.8rem;
+                font-size: 1.3rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
 
-            &:active {
-                transform: translateY(0);
+                &.btn-primary {
+                    background: #4dabf7;
+                    color: #fff;
+                    &:hover {
+                        background: #339af0;
+                    }
+                }
+
+                &.btn-outline {
+                    border: 0.15rem solid #4dabf7;
+                    color: #4dabf7;
+                    background: transparent;
+                    &:hover {
+                        background: #4dabf7;
+                        color: #fff;
+                    }
+                }
             }
         }
     }
 
-    /* ✅ 하단 기능 카드 */
     .landing-features {
         display: flex;
         justify-content: center;
         gap: 2rem;
         flex-wrap: wrap;
-        width: 100%;
-        max-width: 80rem;
 
         li {
-            flex: 1 1 22rem;
+            flex: 1 1 20rem;
             border: 0.1rem solid var(--border);
             border-radius: 0.8rem;
-            background: var(--bg);
-            padding: 2rem 1.6rem;
-            box-shadow: var(--shadow-soft);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-            &:hover {
-                transform: translateY(-0.2rem);
-                box-shadow: 0 0.6rem 1.2rem rgba(0, 0, 0, 0.08);
-            }
-
-            h3 {
-                font-size: 1.6rem;
-                font-weight: 700;
-                margin-bottom: 0.6rem;
-                color: var(--text);
-            }
-
-            p {
-                font-size: 1.3rem;
-                color: var(--muted);
-                line-height: 1.4;
-            }
-        }
-    }
-
-    /* ✅ 반응형 */
-    @media (max-width: 600px) {
-        .landing-hero h1 {
-            font-size: 2.8rem;
-        }
-
-        .landing-hero .landing-sub {
-            font-size: 1.4rem;
-        }
-
-        .btn.btn-primary {
-            font-size: 1.4rem;
-            padding: 1rem 2rem;
-        }
-
-        .landing-features {
-            flex-direction: column;
-            align-items: center;
-
-            li {
-                width: 90%;
-            }
+            padding: 1.5rem;
+            background: white;
+            text-align: center;
         }
     }
 }

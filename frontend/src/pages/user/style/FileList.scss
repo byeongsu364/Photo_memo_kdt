@@ -23,69 +23,92 @@
         justify-items: center;
     }
 
+    /* ✅ 카드 영역 */
     .file-card {
         position: relative;
         width: 20rem;
-        aspect-ratio: 1 / 1;
+        height: 26rem;
         background: var(--bg);
         border-radius: var(--radius-l);
         border: 0.1rem solid var(--border);
         overflow: hidden;
-        box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.05);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: var(--shadow-soft);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
         cursor: pointer;
+        display: flex;
+        flex-direction: column;
 
         &:hover {
-            transform: translateY(-0.3rem);
-            box-shadow: 0 0.6rem 1.2rem rgba(0, 0, 0, 0.1);
+            transform: translateY(-0.4rem);
+            box-shadow: var(--shadow-medium);
+
+            img {
+                transform: scale(1.05);
+                filter: brightness(0.9);
+            }
+
+            .info {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
+        /* ✅ 이미지 */
         img {
+            flex: 1;
             width: 100%;
-            height: 100%;
-            object-fit: contain;
-            background-color: #f8f9fa;
+            height: 65%;
+            object-fit: cover;
+            background: var(--surface-alt);
+            transition: transform 0.4s ease, filter 0.3s ease;
         }
 
-        /* ✅ hover 시만 정보창 표시 */
+        /* ✅ 정보창 */
         .info {
-            position: absolute;
-            bottom: 0;
-            left: 0;
+            flex: 1;
             width: 100%;
-            height: 35%;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 1rem;
+            background: rgba(255, 255, 255, 0.95);
             text-align: center;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            opacity: 0;
-            transform: translateY(100%);
+            align-items: center;
+            padding: 1rem;
             transition: opacity 0.3s ease, transform 0.3s ease;
+            opacity: 0;
+            transform: translateY(1rem);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 45%;
+            border-top: 0.1rem solid rgba(0, 0, 0, 0.05);
+            border-radius: 0 0 var(--radius-l) var(--radius-l);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
 
             h3 {
-                font-size: 1.3rem;
+                font-size: 1.4rem;
                 font-weight: 700;
                 color: var(--text);
                 margin-bottom: 0.3rem;
             }
 
             p {
-                font-size: 1.1rem;
+                font-size: 1.2rem;
                 color: var(--muted);
+                margin-bottom: 0.2rem;
             }
 
             .date {
-                font-size: 1rem;
+                font-size: 1.1rem;
                 color: #888;
+                margin-bottom: 0.6rem;
             }
 
             .actions {
                 display: flex;
                 gap: 0.6rem;
-                margin-top: 0.5rem;
+                margin-top: 0.3rem;
 
                 button {
                     border: none;
@@ -94,29 +117,34 @@
                     font-size: 1.2rem;
                     font-weight: 600;
                     cursor: pointer;
-                    transition: background 0.2s ease;
+                    transition: background 0.25s ease, transform 0.1s ease;
+                    color: var(--primary-contrast);
+                    box-shadow: var(--shadow-soft);
+
+                    &:active {
+                        transform: scale(0.97);
+                    }
                 }
 
                 .edit-btn {
-                    background: #4dabf7;
-                    color: white;
+                    background: var(--primary);
 
                     &:hover {
-                        background: #339af0;
+                        background: var(--primary-hover);
                     }
                 }
 
                 .delete-btn {
-                    background: #ff6b6b;
-                    color: white;
+                    background: var(--danger);
 
                     &:hover {
-                        background: #fa5252;
+                        background: #dc2626;
                     }
                 }
             }
         }
 
+        /* ✅ hover 시 자연스러운 전환 */
         &:hover .info {
             opacity: 1;
             transform: translateY(0);
