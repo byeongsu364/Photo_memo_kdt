@@ -3,9 +3,9 @@ const multer = require("multer");
 const multerS3 = require("multer-s3");
 const { S3Client } = require("@aws-sdk/client-s3");
 const path = require("path");
-require("dotenv").config();
+const crypto = require("crypto");
 
-// ✅ S3 클라이언트 (v3 방식)
+// ✅ S3 클라이언트 (AWS SDK v3)
 const s3 = new S3Client({
     region: "ap-northeast-2",
     credentials: {
@@ -14,7 +14,7 @@ const s3 = new S3Client({
     },
 });
 
-// ✅ 파일 확장자 필터
+// ✅ 허용 확장자
 const allowedExtensions = [".png", ".jpg", ".jpeg", ".gif", ".webp"];
 
 const upload = multer({
@@ -22,12 +22,16 @@ const upload = multer({
         s3,
         bucket: process.env.S3_BUCKET,
         contentType: multerS3.AUTO_CONTENT_TYPE,
-        key: function (req, file, cb) {
+        key: (req, file, cb) => {
             const ext = path.extname(file.originalname).toLowerCase();
             if (!allowedExtensions.includes(ext)) {
-                return cb(new Error("허용되지 않은 파일 형식입니다."));
+                const err = new Error("허용되지 않은 파일 형식입니다.");
+                err.status = 400;
+                return cb(err);
             }
-            cb(null, `photoMemo/${Date.now()}_${file.originalname}`);
+
+            const uniqueName = `photoMemo/${Date.now()}_${crypto.randomUUID()}${ext}`;
+            cb(null, uniqueName);
         },
     }),
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
