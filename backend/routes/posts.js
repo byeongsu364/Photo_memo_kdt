@@ -4,7 +4,9 @@ const Post = require("../models/Post");
 const mongoose = require("mongoose");
 const { authenticateToken } = require("../middlewares/auth");
 
-const S3_BASE_URL = process.env.S3_BASE_URL || `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com`;
+const S3_BASE_URL =
+    process.env.S3_BASE_URL ||
+    `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com`;
 
 function joinS3Url(base, key) {
     const b = String(base || "").replace(/\/+$/, "");
@@ -38,7 +40,7 @@ const pickDefined = (obj) =>
 // ✅ 게시글 생성
 router.post("/", authenticateToken, async (req, res) => {
     try {
-        const { title, content, fileUrl, imageUrl } = req.body;
+        const { title, content, fileUrl, imageUrl, isAnonymous } = req.body;
         let files = toArray(fileUrl);
         if (!files.length && imageUrl) files = toArray(imageUrl);
 
@@ -52,7 +54,8 @@ router.post("/", authenticateToken, async (req, res) => {
             title,
             content,
             fileUrl: files,
-            imageUrl
+            imageUrl,
+            isAnonymous: isAnonymous || false, // ✅ 익명 여부 반영
         });
 
         res.status(201).json(post);
@@ -65,12 +68,32 @@ router.post("/", authenticateToken, async (req, res) => {
 // ✅ 전체 게시글 조회
 router.get("/", async (req, res) => {
     try {
-        const list = await Post.find().sort({ createdAt: -1 }).lean();
+        // ✅ 작성자 이름도 함께 가져오기
+        const list = await Post.find()
+            .populate("user", "displayName") // displayName만 가져옴
+            .sort({ createdAt: -1 })
+            .lean();
+
         const data = list.map((p) => {
-            const raw = Array.isArray(p.fileUrl) ? p.fileUrl : p.imageUrl ? [p.imageUrl] : [];
-            const urls = raw.map((v) => (v.startsWith("http") ? v : joinS3Url(S3_BASE_URL, v)));
-            return { ...p, fileUrl: urls };
+            const raw = Array.isArray(p.fileUrl)
+                ? p.fileUrl
+                : p.imageUrl
+                ? [p.imageUrl]
+                : [];
+            const urls = raw.map((v) =>
+                v.startsWith("http") ? v : joinS3Url(S3_BASE_URL, v)
+            );
+
+            return {
+                ...p,
+                fileUrl: urls,
+                // ✅ 익명일 경우 표시명 변경
+                author: p.isAnonymous
+                    ? "익명"
+                    : p.user?.displayName || "탈퇴한 사용자",
+            };
         });
+
         res.json(data);
     } catch (error) {
         console.error("GET /api/posts 실패:", error);
@@ -82,12 +105,28 @@ router.get("/", async (req, res) => {
 router.get("/my", authenticateToken, async (req, res) => {
     try {
         const userId = req.user.id || req.user._id;
-        const myPosts = await Post.find({ user: userId }).sort({ createdAt: -1 }).lean();
+        const myPosts = await Post.find({ user: userId })
+            .populate("user", "displayName")
+            .sort({ createdAt: -1 })
+            .lean();
 
         const data = myPosts.map((p) => {
-            const raw = Array.isArray(p.fileUrl) ? p.fileUrl : p.imageUrl ? [p.imageUrl] : [];
-            const urls = raw.map((v) => (v.startsWith("http") ? v : joinS3Url(S3_BASE_URL, v)));
-            return { ...p, fileUrl: urls };
+            const raw = Array.isArray(p.fileUrl)
+                ? p.fileUrl
+                : p.imageUrl
+                ? [p.imageUrl]
+                : [];
+            const urls = raw.map((v) =>
+                v.startsWith("http") ? v : joinS3Url(S3_BASE_URL, v)
+            );
+
+            return {
+                ...p,
+                fileUrl: urls,
+                author: p.isAnonymous
+                    ? "익명"
+                    : p.user?.displayName || "탈퇴한 사용자",
+            };
         });
 
         res.json(data);
@@ -100,12 +139,13 @@ router.get("/my", authenticateToken, async (req, res) => {
 // ✅ 게시글 수정
 router.put("/:id", authenticateToken, ensureObjectId, async (req, res) => {
     try {
-        const { title, content, fileUrl, imageUrl } = req.body;
+        const { title, content, fileUrl, imageUrl, isAnonymous } = req.body;
         const updates = pickDefined({
             title,
             content,
             fileUrl: fileUrl ? toArray(fileUrl) : undefined,
-            imageUrl
+            imageUrl,
+            isAnonymous, // ✅ 익명 여부 수정 가능
         });
 
         const doc = await Post.findById(req.params.id).select("user").lean();
@@ -113,7 +153,11 @@ router.put("/:id", authenticateToken, ensureObjectId, async (req, res) => {
         if (String(doc.user) !== String(req.user.id))
             return res.status(403).json({ message: "권한이 없습니다." });
 
-        const updated = await Post.findByIdAndUpdate(req.params.id, { $set: updates }, { new: true });
+        const updated = await Post.findByIdAndUpdate(
+            req.params.id,
+            { $set: updates },
+            { new: true }
+        );
         res.json(updated);
     } catch (error) {
         console.error("PUT /api/posts/:id 실패:", error);

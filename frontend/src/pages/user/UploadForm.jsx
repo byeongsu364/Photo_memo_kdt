@@ -19,6 +19,7 @@ const UploadForm = () => {
         { label: "일상", memos: [{ title: "", content: "", image: null }] },
     ]);
     const [status, setStatus] = useState("");
+    const [isAnonymous, setIsAnonymous] = useState(false); // ✅ 익명 여부 추가
 
     // ✅ 카테고리 변경 시 초기화
     const handleTypeChange = (e) => {
@@ -103,29 +104,24 @@ const UploadForm = () => {
                 for (const memo of days[0].memos) {
                     if (!memo.title || !memo.image) continue;
 
-                    // presign → S3 업로드
                     const { url } = await getPresignedUrl(memo.image.name, memo.image.type);
                     const imageUrl = await uploadToS3(memo.image, url);
 
-                    // DB 저장
                     await uploadMemo({
                         title: memo.title,
                         content: memo.content,
                         category: type,
-                        image: { imageUrl },
+                        imageUrl,
+                        isAnonymous, // ✅ 익명여부 전달
                     });
                 }
             }
 
             // 🔹 여행 모드
             else {
-                // ✅ 썸네일 S3 업로드 (선택 시)
                 let thumbnailUrl = null;
                 if (tripThumbnail) {
-                    const { url } = await getPresignedUrl(
-                        tripThumbnail.name,
-                        tripThumbnail.type
-                    );
+                    const { url } = await getPresignedUrl(tripThumbnail.name, tripThumbnail.type);
                     thumbnailUrl = await uploadToS3(tripThumbnail, url);
                 }
 
@@ -133,20 +129,20 @@ const UploadForm = () => {
                     for (const memo of day.memos) {
                         if (!memo.title || !memo.image) continue;
 
-                        // presign → S3 업로드
                         const { url } = await getPresignedUrl(memo.image.name, memo.image.type);
                         const imageUrl = await uploadToS3(memo.image, url);
 
-                        // DB 저장
                         await uploadMemo({
                             title: memo.title,
                             content: memo.content,
                             category: type,
+                            imageUrl,
                             tripName: tripTitle,
                             tripStartDate: tripStart,
                             tripEndDate: tripEnd,
                             day: day.label,
-                            image: { imageUrl, thumbnailUrl },
+                            thumbnailUrl,
+                            isAnonymous, // ✅ 여행모드도 반영
                         });
                     }
                 }
@@ -183,7 +179,6 @@ const UploadForm = () => {
                 {/* ✅ 여행 모드 */}
                 {type === "여행" && (
                     <>
-                        {/* 여행 제목 */}
                         <div className="trip-title">
                             <label>여행 제목</label>
                             <input
@@ -195,7 +190,6 @@ const UploadForm = () => {
                             />
                         </div>
 
-                        {/* 썸네일 업로드 */}
                         <div className="trip-thumbnail">
                             <label>썸네일 이미지</label>
                             <input
@@ -212,7 +206,6 @@ const UploadForm = () => {
                             )}
                         </div>
 
-                        {/* 여행 기간 */}
                         <div className="trip-range">
                             <label>여행 기간</label>
                             <div className="range-inputs">
@@ -234,7 +227,7 @@ const UploadForm = () => {
                     </>
                 )}
 
-                {/* ✅ 렌더링 (일상 + 여행 공통 구조) */}
+                {/* ✅ 메모 리스트 렌더링 */}
                 {days.map((day, dayIndex) => (
                     <div key={dayIndex} className="day-section">
                         {type === "여행" && <h3 className="day-title">{day.label}</h3>}
@@ -281,7 +274,6 @@ const UploadForm = () => {
                             </div>
                         ))}
 
-                        {/* 메모 추가 버튼 */}
                         <button
                             type="button"
                             className="add-btn"
@@ -291,6 +283,18 @@ const UploadForm = () => {
                         </button>
                     </div>
                 ))}
+
+                {/* ✅ 익명 여부 선택 */}
+                <div className="anonymous-toggle">
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={isAnonymous}
+                            onChange={(e) => setIsAnonymous(e.target.checked)}
+                        />
+                        익명으로 게시하기
+                    </label>
+                </div>
 
                 {/* ✅ 저장 버튼 */}
                 <button type="submit" className="submit-btn">

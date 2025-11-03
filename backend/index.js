@@ -10,14 +10,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ✅ JSON 파싱을 cors보다 위에 선언
-app.use(express.json({ limit: "5mb" }));
+app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ✅ CORS 설정
+// ✅ CORS 설정 (기본값 보완)
 app.use(
     cors({
-        origin: process.env.FRONT_ORIGIN,
+        origin: process.env.FRONT_ORIGIN || "http://localhost:5173", // ✅ 기본값 추가
         credentials: true,
     })
 );
@@ -43,14 +43,14 @@ const postroutes = require("./routes/posts"); // 🆕 게시글 라우터 추가
 app.use("/api/auth", authroutes);
 app.use("/api/memo", memoroutes);
 app.use("/api/upload", fileroutes);
-app.use("/api/posts", postroutes); // ✅ 게시글 API 연결
+app.use("/api/posts", postroutes);
 
 // ✅ 404 처리
 app.use((req, res) => {
     res.status(404).json({ message: "요청하신 경로를 찾을 수 없습니다." });
 });
 
-// ✅ 500 에러 처리 (서버 내부 오류)
+// ✅ 500 에러 처리
 app.use((err, req, res, next) => {
     console.error("🔥 서버 오류:", err);
     res.status(500).json({
