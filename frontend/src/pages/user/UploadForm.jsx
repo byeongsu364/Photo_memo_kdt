@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { v4 as uuidv4 } from "uuid"; // ✅ 추가
 import {
     getPresignedUrl,
     uploadToS3,
@@ -19,7 +20,7 @@ const UploadForm = () => {
         { label: "일상", memos: [{ title: "", content: "", image: null }] },
     ]);
     const [status, setStatus] = useState("");
-    const [isAnonymous, setIsAnonymous] = useState(false); // ✅ 익명 여부 추가
+    const [isAnonymous, setIsAnonymous] = useState(false);
 
     // ✅ 카테고리 변경 시 초기화
     const handleTypeChange = (e) => {
@@ -52,7 +53,6 @@ const UploadForm = () => {
     const handleTripRange = (start, end) => {
         setTripStart(start);
         setTripEnd(end);
-
         if (!start || !end) return;
 
         const startDate = new Date(start);
@@ -67,7 +67,6 @@ const UploadForm = () => {
                 .split("T")[0],
             memos: [{ title: "", content: "", image: null }],
         }));
-
         setDays(newDays);
     };
 
@@ -95,9 +94,15 @@ const UploadForm = () => {
     // ✅ 업로드 처리
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         try {
             setStatus("📤 업로드 중...");
+
+            // 🔹 한 번만 groupId 생성
+            const groupId = uuidv4();
+            const groupTitle =
+                days[0].memos.length > 1
+                    ? prompt("여러 메모를 묶을 전체 제목을 입력하세요.")
+                    : days[0].memos[0].title;
 
             // 🔹 일상 모드
             if (type === "일상") {
@@ -112,7 +117,9 @@ const UploadForm = () => {
                         content: memo.content,
                         category: type,
                         imageUrl,
-                        isAnonymous, // ✅ 익명여부 전달
+                        isAnonymous,
+                        groupId,
+                        groupTitle,
                     });
                 }
             }
@@ -142,7 +149,9 @@ const UploadForm = () => {
                             tripEndDate: tripEnd,
                             day: day.label,
                             thumbnailUrl,
-                            isAnonymous, // ✅ 여행모드도 반영
+                            isAnonymous,
+                            groupId,
+                            groupTitle,
                         });
                     }
                 }
@@ -158,7 +167,6 @@ const UploadForm = () => {
     return (
         <div className="upload-form">
             <h2>포토메모 업로드</h2>
-
             <form onSubmit={handleSubmit}>
                 {/* ✅ 카테고리 선택 */}
                 <select value={type} onChange={handleTypeChange}>
@@ -166,7 +174,6 @@ const UploadForm = () => {
                     <option value="여행">여행</option>
                 </select>
 
-                {/* ✅ 일상 모드 */}
                 {type === "일상" && (
                     <input
                         type="date"
@@ -176,7 +183,7 @@ const UploadForm = () => {
                     />
                 )}
 
-                {/* ✅ 여행 모드 */}
+                {/* ✅ 여행 관련 입력 */}
                 {type === "여행" && (
                     <>
                         <div className="trip-title">
@@ -189,7 +196,6 @@ const UploadForm = () => {
                                 required
                             />
                         </div>
-
                         <div className="trip-thumbnail">
                             <label>썸네일 이미지</label>
                             <input
@@ -198,40 +204,16 @@ const UploadForm = () => {
                                 onChange={handleThumbnailChange}
                             />
                             {thumbnailPreview && (
-                                <img
-                                    src={thumbnailPreview}
-                                    alt="썸네일 미리보기"
-                                    className="preview"
-                                />
+                                <img src={thumbnailPreview} alt="썸네일 미리보기" className="preview" />
                             )}
-                        </div>
-
-                        <div className="trip-range">
-                            <label>여행 기간</label>
-                            <div className="range-inputs">
-                                <input
-                                    type="date"
-                                    value={tripStart}
-                                    onChange={(e) => handleTripRange(e.target.value, tripEnd)}
-                                    required
-                                />
-                                <span>~</span>
-                                <input
-                                    type="date"
-                                    value={tripEnd}
-                                    onChange={(e) => handleTripRange(tripStart, e.target.value)}
-                                    required
-                                />
-                            </div>
                         </div>
                     </>
                 )}
 
-                {/* ✅ 메모 리스트 렌더링 */}
+                {/* ✅ 메모 입력 */}
                 {days.map((day, dayIndex) => (
                     <div key={dayIndex} className="day-section">
                         {type === "여행" && <h3 className="day-title">{day.label}</h3>}
-
                         {day.memos.map((memo, memoIndex) => (
                             <div key={memoIndex} className="entry-box">
                                 <div className="entry-header">
@@ -273,18 +255,13 @@ const UploadForm = () => {
                                 />
                             </div>
                         ))}
-
-                        <button
-                            type="button"
-                            className="add-btn"
-                            onClick={() => addMemo(dayIndex)}
-                        >
+                        <button type="button" className="add-btn" onClick={() => addMemo(dayIndex)}>
                             + 메모 추가
                         </button>
                     </div>
                 ))}
 
-                {/* ✅ 익명 여부 선택 */}
+                {/* ✅ 익명 여부 */}
                 <div className="anonymous-toggle">
                     <label>
                         <input
@@ -296,7 +273,6 @@ const UploadForm = () => {
                     </label>
                 </div>
 
-                {/* ✅ 저장 버튼 */}
                 <button type="submit" className="submit-btn">
                     저장하기
                 </button>

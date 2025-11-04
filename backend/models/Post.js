@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { v4: uuidv4 } = require("uuid");
 
 // ✅ 자동 증가용 Counter 스키마
 const counterSchema = new mongoose.Schema({
@@ -10,14 +11,14 @@ const Counter = mongoose.model("Counter", counterSchema);
 // ✅ 게시글 스키마
 const postSchema = new mongoose.Schema(
     {
-        // ✅ 작성자 (User 컬렉션 참조 → populate 가능)
+        // ✅ 작성자
         user: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true,
         },
 
-        // ✅ 게시글 고유 번호 (자동 증가)
+        // ✅ 게시글 고유 번호 (전체 시스템 기준 자동 증가)
         number: {
             type: Number,
             unique: true,
@@ -37,15 +38,15 @@ const postSchema = new mongoose.Schema(
             trim: true,
         },
 
-        // ✅ 첨부파일 (S3 presigned URL 배열)
-        fileUrl: {
-            type: [String],
+        // ✅ 대표 이미지
+        imageUrl: {
+            type: String,
             trim: true,
         },
 
-        // ✅ 이미지 (대표 이미지)
-        imageUrl: {
-            type: String,
+        // ✅ 첨부파일 배열 (S3 URL들)
+        fileUrl: {
+            type: [String],
             trim: true,
         },
 
@@ -53,6 +54,27 @@ const postSchema = new mongoose.Schema(
         isAnonymous: {
             type: Boolean,
             default: false,
+        },
+
+        // ✅ 그룹 ID (일상·여행 공통)
+        groupId: {
+            type: String,
+            default: null, // 단일 메모일 땐 null
+            index: true,
+        },
+
+        // ✅ 그룹 제목 (예: “제주 2박3일 여행”, “주말 일상 모음”)
+        groupTitle: {
+            type: String,
+            trim: true,
+            default: null,
+        },
+
+        // ✅ 여행 전용 Day 정보 (일상은 null)
+        day: {
+            type: String,
+            trim: true,
+            default: null,
         },
 
         // ✅ 조회 로그
@@ -65,11 +87,11 @@ const postSchema = new mongoose.Schema(
         ],
     },
     {
-        timestamps: true, // createdAt, updatedAt 자동 생성
+        timestamps: true, // createdAt, updatedAt 자동 기록
     }
 );
 
-// ✅ 게시글 생성 전 자동 번호 증가 (number)
+// ✅ 자동 증가 (number)
 postSchema.pre("save", async function (next) {
     if (this.isNew) {
         const counter = await Counter.findOneAndUpdate(
@@ -79,6 +101,12 @@ postSchema.pre("save", async function (next) {
         );
         this.number = counter.seq;
     }
+
+    // ✅ 그룹 ID 자동 생성 (여러 메모 업로드 시만)
+    if (!this.groupId && this.groupTitle) {
+        this.groupId = uuidv4();
+    }
+
     next();
 });
 

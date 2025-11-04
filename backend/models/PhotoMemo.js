@@ -17,9 +17,17 @@ const photoMemoSchema = new mongoose.Schema(
         day: { type: String }, // ex: 첫째날, 둘째날
         activity: { type: String }, // ex: 맛집, 카페, 운동 등
 
+        // ✅ 공통 필드
         title: { type: String, required: true },
         content: { type: String, trim: true, default: "" },
         imageUrl: { type: String, required: true },
+
+        // ✅ 그룹화용 필드 추가
+        groupId: { type: String, index: true, default: null },
+        groupTitle: { type: String, trim: true, default: null },
+
+        // ✅ 익명 여부 (있다면 같이 추가)
+        isAnonymous: { type: Boolean, default: false },
     },
     { timestamps: true }
 );

@@ -3,8 +3,9 @@ const router = express.Router();
 const PhotoMemo = require("../models/PhotoMemo");
 const Post = require("../models/Post");
 const { authenticateToken } = require("../middlewares/auth");
+const { v4: uuidv4 } = require("uuid");
 
-// ✅ 포토메모 업로드 (게시글 자동 생성)
+// ✅ 포토메모 업로드 (게시글 자동 그룹화)
 router.post("/", authenticateToken, async (req, res) => {
     try {
         console.log("📩 받은 메모 요청:", req.body);
@@ -21,11 +22,21 @@ router.post("/", authenticateToken, async (req, res) => {
             content,
             category,
             imageUrl,
-            isAnonymous, // ✅ 추가
+            isAnonymous,
+            groupId,      // ✅ 그룹 업로드용
+            groupTitle,   // ✅ 대표 제목
         } = req.body;
 
         if (!title) return res.status(400).json({ message: "제목은 필수입니다." });
         if (!imageUrl) return res.status(400).json({ message: "이미지가 없습니다." });
+
+        // ✅ 공통 그룹 처리
+        const resolvedGroupId = groupId || (req.body.totalMemos > 1 ? uuidv4() : null);
+        const resolvedGroupTitle =
+            groupTitle ||
+            (req.body.totalMemos > 1
+                ? tripName || "메모 그룹"
+                : title);
 
         // ✅ PhotoMemo 저장
         const memo = await PhotoMemo.create({
@@ -37,25 +48,28 @@ router.post("/", authenticateToken, async (req, res) => {
             isAnonymous: isAnonymous || false,
         });
 
-        // ✅ Post의 number 자동 증가 (유저별)
-        const lastPost = await Post.findOne({ user: req.user.id }).sort({ number: -1 });
-        const nextNumber = lastPost ? lastPost.number + 1 : 1;
-
-        // ✅ Post 생성
-        await Post.create({
-            number: nextNumber,
+        // ✅ Post 생성 (groupId, day, groupTitle 반영)
+        const post = await Post.create({
             user: req.user.id,
             title,
             content,
             imageUrl,
             isAnonymous: isAnonymous || false,
+            groupId: resolvedGroupId,
+            groupTitle: resolvedGroupTitle,
+            day: type === "여행" ? day || null : null,
         });
 
-        console.log(`✅ 포토메모 + 게시글 업로드 완료 (${isAnonymous ? "익명" : "실명"})`);
+        console.log(
+            `✅ 업로드 완료 → ${resolvedGroupTitle || title} ${
+                resolvedGroupId ? `(그룹ID: ${resolvedGroupId})` : "(단일)"
+            }`
+        );
 
         res.status(201).json({
             message: "포토메모 및 게시글 업로드 완료",
             memo,
+            post,
         });
     } catch (error) {
         console.error("❌ 업로드 실패:", error);
@@ -112,6 +126,7 @@ router.put("/:id", authenticateToken, async (req, res) => {
             content,
             imageUrl,
             isAnonymous,
+            groupTitle,
         } = req.body;
 
         const update = {
@@ -141,7 +156,15 @@ router.put("/:id", authenticateToken, async (req, res) => {
         // ✅ Post 수정
         await Post.findOneAndUpdate(
             { title: title, user: req.user.id },
-            { $set: { title, content, imageUrl: memo.imageUrl, isAnonymous } }
+            {
+                $set: {
+                    title,
+                    content,
+                    imageUrl: memo.imageUrl,
+                    isAnonymous,
+                    groupTitle,
+                },
+            }
         );
 
         res.status(200).json(memo);
