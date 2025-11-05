@@ -73,7 +73,6 @@ export async function getPresignedUrl(filename, contentType) {
         filename,
         contentType: contentType || mimeByExt(filename),
     };
-
     console.log("📤 presign 요청:", payload);
     const { data } = await api.post("/api/upload/presign", payload);
     console.log("📥 presign 응답:", data);
@@ -129,25 +128,48 @@ export function clearAuthStorage() {
 /* ============================================================
    📸 포토메모 관련 API
 ============================================================ */
-export async function uploadMemo({ title, content, category, imageUrl, isAnonymous }) {
-    const payload = { title, content, category, imageUrl, isAnonymous };
+// ✅ 그룹 업로드 포함 버전
+export async function uploadMemo({
+    title,
+    content,
+    category,
+    imageUrl,
+    isAnonymous,
+    groupId,
+    groupTitle,
+    totalMemos,
+}) {
+    const payload = {
+        title,
+        content,
+        category,
+        imageUrl,
+        isAnonymous,
+        groupId,
+        groupTitle,
+        totalMemos,
+    };
+
+    console.log("📤 업로드 요청 payload:", payload);
     const { data } = await api.post("/api/memo", payload);
     return data;
 }
 
+// ✅ 내 메모 조회
 export async function fetchMyMemos() {
     const { data } = await api.get("/api/memo/me");
     return data;
 }
 
+// ✅ 메모 삭제
 export async function deleteMemo(id) {
     const { data } = await api.delete(`/api/memo/${id}`);
     return data;
 }
 
+// ✅ 메모 수정
 export async function updateMemo(id, { title, content, category, image }) {
     let imageUrl;
-
     if (image) {
         const { url } = await getPresignedUrl(image.name, image.type);
         imageUrl = await uploadToS3(image, url);
@@ -161,35 +183,46 @@ export async function updateMemo(id, { title, content, category, image }) {
 }
 
 /* ============================================================
+   🧩 그룹 메모 관련 API
+============================================================ */
+// ✅ 그룹 전체 조회
+export async function fetchGroupMemos(groupId) {
+    const { data } = await api.get(`/api/memo/group/${groupId}`);
+    return data; // { groupId, groupTitle, items: [...] }
+}
+
+// ✅ 그룹 수정/삭제 일괄 업데이트
+export async function updateGroupMemos(groupId, { groupTitle, items }) {
+    const payload = { groupTitle, items };
+    const { data } = await api.put(`/api/memo/group/${groupId}`, payload);
+    return data;
+}
+
+/* ============================================================
    📰 게시글(Post) 관련 API
 ============================================================ */
-// ✅ 전체 게시글 목록 조회
 export async function fetchAllPosts() {
     const { data } = await api.get("/api/posts");
     return data;
 }
 
-// ✅ 게시글 상세 조회
 export async function fetchPostDetail(id) {
     const { data } = await api.get(`/api/posts/${id}`);
     return data;
 }
 
-// ✅ 게시글 작성
 export async function createPost({ title, content, imageUrl }) {
     const payload = { title, content, imageUrl };
     const { data } = await api.post("/api/posts", payload);
     return data;
 }
 
-// ✅ 게시글 수정
 export async function updatePost(id, { title, content, imageUrl }) {
     const payload = { title, content, imageUrl };
     const { data } = await api.put(`/api/posts/${id}`, payload);
     return data;
 }
 
-// ✅ 게시글 삭제
 export async function deletePost(id) {
     const { data } = await api.delete(`/api/posts/${id}`);
     return data;
