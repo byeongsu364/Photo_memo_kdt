@@ -13,6 +13,7 @@ import UploadForm from "./pages/user/UploadForm"
 import FileList from "./pages/user/FileList"
 import Posts from "./pages/Posts"
 import PostDetail from "./pages/PostDetail"
+import MyPage from "./pages/user/MyPage"   // ✅ 마이페이지 추가
 
 import {
   fetchMe as apifetchMe,
@@ -22,7 +23,7 @@ import {
 } from "./api/client"
 
 function App() {
-  const location = useLocation(); // ✅ 현재 경로 감지
+  const location = useLocation();
 
   /* -------------------------------
      🔹 상태 정의
@@ -137,6 +138,7 @@ function App() {
           <Route path="dashboard" element={<UserDashboard />} />
           <Route path="upload" element={<UploadForm />} />
           <Route path="files" element={<FileList />} />
+          <Route path="mypage" element={<MyPage />} /> {/* ✅ 마이페이지 추가 */}
         </Route>
 
         {/* ✅ 관리자 보호 구역 */}
