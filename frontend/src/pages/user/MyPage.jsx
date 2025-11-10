@@ -1,6 +1,6 @@
 import React from "react";
-import FileList from "../components/FileList"; // ✅ 기존 컴포넌트 재활용
-import "../components/style/FileList.scss";
+import FileList from "../../pages/user/FileList"; // ✅ 기존 컴포넌트 재활용
+import "./style/MyPage.scss"; // ✅ 스타일링을 위한 CSS 파일
 
 const MyPage = () => {
     return (

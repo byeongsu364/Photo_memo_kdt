@@ -1,9 +1,10 @@
-.file-list-section {
+.mypage-section {
     width: 100%;
     max-width: 1200px;
     margin: 50px auto;
     padding: 0 20px;
 
+    /* ✅ 제목 */
     h2 {
         font-size: 1.8rem;
         font-weight: 800;
@@ -16,152 +17,132 @@
         -webkit-text-fill-color: transparent;
     }
 
-    .file-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 28px;
-    }
-
-    .file-card {
+    /* ✅ 사용자 정보 카드 */
+    .mypage-card {
         background: var(--surface);
         border-radius: var(--radius-l);
         box-shadow: var(--shadow-soft);
-        overflow: hidden;
-        transition: all 0.25s ease;
-        display: flex;
-        flex-direction: column;
-        cursor: pointer;
         border: 1px solid var(--border);
+        padding: 2.5rem 2rem;
+        text-align: center;
+        margin-bottom: 2.5rem;
+        transition: all 0.25s ease;
 
         &:hover {
-            transform: translateY(-6px);
+            transform: translateY(-4px);
             box-shadow: var(--shadow-medium);
-            border-color: var(--primary);
         }
 
-        img {
-            width: 100%;
-            height: 230px;
+        .profile-img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
             object-fit: cover;
             background: var(--surface-alt);
-            transition: transform 0.4s ease;
+            border: 2px solid var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--dark-bl);
+            margin-bottom: 0.4rem;
+        }
+
+        .email {
+            font-size: 1rem;
+            color: var(--muted);
+            margin-bottom: 0.8rem;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+
+            .stat-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 0.3rem;
+
+                span:first-child {
+                    font-size: 1.4rem;
+                    font-weight: 700;
+                    color: var(--primary);
+                }
+
+                span:last-child {
+                    font-size: 0.9rem;
+                    color: var(--muted);
+                }
+            }
+        }
+    }
+
+    /* ✅ 버튼 섹션 */
+    .mypage-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1.2rem;
+        flex-wrap: wrap;
+
+        a,
+        button {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-s);
+            padding: 0.7rem 1.4rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.25s ease, transform 0.15s ease;
 
             &:hover {
-                transform: scale(1.07);
-            }
-        }
-
-        .info {
-            padding: 18px 20px 22px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            flex-grow: 1;
-
-            h3 {
-                font-size: 1.15rem;
-                font-weight: 700;
-                color: var(--dark-bl);
-                margin-bottom: 8px;
-                line-height: 1.4;
+                background: var(--primary-hover);
+                transform: translateY(-2px);
             }
 
-            p {
-                font-size: 0.9rem;
-                color: var(--muted);
-                margin-bottom: 8px;
-            }
-
-            .group-edit-input {
-                width: 100%;
-                max-width: 220px;
-                border: 2px solid var(--primary);
-                border-radius: var(--radius-s);
-                padding: 8px 10px;
-                font-size: 0.95rem;
-                font-weight: 600;
-                color: var(--text);
-                background: #fff;
-                text-align: center;
-                transition: all 0.25s ease;
-                margin-bottom: 10px;
-
-                &:focus {
-                    outline: none;
-                    border-color: var(--primary-hover);
-                    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-                }
-            }
-
-            .actions {
-                display: flex;
-                justify-content: center;
-                gap: 0.6rem;
-                margin-top: 6px;
-
-                button {
-                    font-size: 0.9rem;
-                    font-weight: 600;
-                    border: none;
-                    border-radius: var(--radius-s);
-                    padding: 6px 12px;
-                    cursor: pointer;
-                    color: #fff;
-                    transition: all 0.25s ease;
-
-                    &.edit-btn {
-                        background: var(--primary);
-
-                        &:hover {
-                            background: var(--primary-hover);
-                        }
-                    }
-
-                    &.delete-btn {
-                        background: var(--danger);
-
-                        &:hover {
-                            background: #dc2626;
-                        }
-                    }
-                }
-            }
-        }
-
-        .sub-memos {
-            display: flex;
-            gap: 6px;
-            padding: 8px 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-            background: var(--surface-alt);
-            border-top: 1px solid var(--border);
-
-            .sub-thumb {
-                width: 48px;
-                height: 48px;
-                object-fit: cover;
-                border-radius: 6px;
-                border: 1px solid var(--border);
-                transition: transform 0.25s ease;
+            &.danger {
+                background: var(--danger);
 
                 &:hover {
-                    transform: scale(1.1);
-                    border-color: var(--primary);
+                    background: #dc2626;
                 }
             }
         }
     }
 
-    .empty {
-        text-align: center;
-        color: var(--muted);
-        font-size: 1rem;
-        margin-top: 30px;
+    /* ✅ 세부 정보 박스 */
+    .mypage-detail {
+        margin-top: 3rem;
+        background: var(--surface-alt);
+        border-radius: var(--radius-l);
+        border: 1px solid var(--border);
+        padding: 2rem;
+        box-shadow: var(--shadow-soft);
+
+        h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--dark-bl);
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.6rem;
+        }
+
+        p {
+            font-size: 1rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
     }
 
-    /* ✅ 그룹 수정 모달 (가로 폼 버전) */
+    /* ✅ 그룹 수정 모달 (FileList와 동일하게 가로 버전) */
     .modal {
         position: fixed;
         inset: 0;
@@ -169,7 +150,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 200;
+        z-index: 300;
 
         .modal-content {
             background: #fff;
@@ -206,7 +187,7 @@
                 }
             }
 
-            /* ✅ 수정폼 한 줄 가로 정렬 */
+            /* ✅ 그룹 아이템 - 가로 정렬 */
             .item-box {
                 display: flex;
                 align-items: flex-start;
@@ -318,25 +299,38 @@
             }
         }
     }
-}
 
-/* ✅ 반응형 */
-@media (max-width: 768px) {
-    .file-list-section {
-        margin-top: 30px;
-
+    /* ✅ 반응형 */
+    @media (max-width: 768px) {
         h2 {
             font-size: 1.5rem;
         }
 
-        .file-list {
-            gap: 20px;
+        .mypage-card {
+            padding: 1.8rem;
         }
 
-        .file-card img {
-            height: 200px;
+        .stats {
+            flex-direction: column;
+            gap: 0.8rem;
         }
 
+        .mypage-actions {
+            flex-direction: column;
+            gap: 0.8rem;
+
+            a,
+            button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        .mypage-detail {
+            padding: 1.4rem;
+        }
+
+        /* ✅ 모달 반응형 */
         .modal-content {
             width: 95%;
             padding: 1.5rem;

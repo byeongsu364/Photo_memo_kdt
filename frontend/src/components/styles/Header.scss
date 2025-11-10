@@ -3,6 +3,9 @@
     border-bottom: 0.1rem solid var(--border);
     padding: 1.2rem 2rem;
     box-shadow: var(--shadow-soft);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 
     .inner {
         display: flex;
@@ -12,6 +15,7 @@
         margin: 0 auto;
     }
 
+    /* ✅ 로고 영역 */
     .logo {
         font-size: 2rem;
         font-weight: 700;
@@ -19,20 +23,31 @@
         display: flex;
         align-items: center;
         gap: 0.4rem;
+        cursor: pointer;
 
         .logo-link {
             display: flex;
             align-items: center;
             color: inherit;
             text-decoration: none;
+            transition: opacity 0.2s ease;
 
             &:hover {
                 opacity: 0.8;
-                transition: opacity 0.2s ease;
+            }
+
+            .logo-emoji {
+                font-size: 1.8rem;
+            }
+
+            .logo-text {
+                font-weight: 700;
+                color: var(--primary);
             }
         }
     }
 
+    /* ✅ 인증 영역 */
     .auth-area {
         display: flex;
         align-items: center;
@@ -42,19 +57,74 @@
             font-size: 1.4rem;
             color: var(--text);
             margin-right: 0.8rem;
+            font-weight: 500;
         }
 
+        .btn {
+            border: none;
+            border-radius: var(--radius-s);
+            padding: 0.6rem 1.2rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ✅ 마이페이지 버튼 */
+        .btn.mypage {
+            background: var(--primary);
+            color: #fff;
+
+            &:hover {
+                background: var(--primary-hover);
+                transform: translateY(-0.1rem);
+            }
+        }
+
+        /* ✅ 로그아웃 버튼 */
         .btn.logout {
             background: var(--danger);
             color: #fff;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: var(--radius-s);
-            cursor: pointer;
-            transition: background 0.2s ease;
 
             &:hover {
                 background: #dc2626;
+                transform: translateY(-0.1rem);
+            }
+        }
+
+        /* ✅ 로그인 버튼 (비로그인용) */
+        .btn.login {
+            background: var(--primary);
+            color: #fff;
+
+            &:hover {
+                background: var(--primary-hover);
+            }
+        }
+    }
+
+    /* ✅ 반응형 처리 */
+    @media (max-width: 768px) {
+        padding: 1rem 1.6rem;
+
+        .logo {
+            font-size: 1.7rem;
+        }
+
+        .auth-area {
+            gap: 0.6rem;
+
+            .welcome {
+                display: none;
+            }
+
+            .btn {
+                padding: 0.5rem 1rem;
+                font-size: 1.2rem;
             }
         }
     }

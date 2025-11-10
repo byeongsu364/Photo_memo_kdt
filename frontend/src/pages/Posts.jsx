@@ -1,16 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { fetchAllPosts } from "../api/client";
+import { useNavigate } from "react-router-dom";
 import "./Posts.scss";
 
 const Posts = () => {
-    const [posts, setPosts] = useState([]);
+    const [groupedPosts, setGroupedPosts] = useState({});
+    const navigate = useNavigate();
 
     useEffect(() => {
         const loadPosts = async () => {
             try {
                 const data = await fetchAllPosts();
                 console.log("📸 게시글 데이터:", data);
-                setPosts(data);
+
+                // ✅ 그룹화 로직
+                const grouped = data.reduce((acc, post) => {
+                    const key = post.groupId || post._id;
+                    if (!acc[key]) acc[key] = [];
+                    acc[key].push(post);
+                    return acc;
+                }, {});
+
+                setGroupedPosts(grouped);
             } catch (err) {
                 console.error("❌ 게시글 로드 실패:", err);
             }
@@ -18,28 +29,61 @@ const Posts = () => {
         loadPosts();
     }, []);
 
+    // ✅ 그룹 클릭 시 상세 페이지 이동
+    const handleClickGroup = (groupId) => {
+        navigate(`/posts/${groupId}`);
+    };
+
+    const groupEntries = Object.entries(groupedPosts);
+
     return (
         <div className="posts-page">
-            <h2>📸 전체 게시글</h2>
+            <h2>📁 전체 게시글</h2>
 
-            {posts.length === 0 ? (
+            {groupEntries.length === 0 ? (
                 <p className="no-posts">아직 게시글이 없습니다.</p>
             ) : (
                 <div className="posts-grid">
-                    {posts.map((post) => (
-                        <div key={post._id} className="post-card">
-                            <div className="image-wrap">
-                                <img src={post.imageUrl} alt={post.title} />
+                    {groupEntries.map(([groupId, items]) => {
+                        const first = items[0];
+                        const title = first.groupTitle || first.title;
+                        const content = first.content || "";
+                        const representativeImage = first.imageUrl;
+                        const userName = first.isAnonymous
+                            ? "익명"
+                            : first.user?.displayName || "user";
+
+                        return (
+                            <div
+                                key={groupId}
+                                className="post-card"
+                                onClick={() => handleClickGroup(groupId)}
+                            >
+                                <div className="image-wrap">
+                                    <img
+                                        src={representativeImage}
+                                        alt={title}
+                                    />
+                                </div>
+                                <div className="post-info">
+                                    <h3>
+                                        {title}{" "}
+                                        {items.length > 1 && (
+                                            <span className="group-count">
+                                                ({items.length}개)
+                                            </span>
+                                        )}
+                                    </h3>
+                                    <p className="post-content">
+                                        {content || "내용 없음"}
+                                    </p>
+                                    <span className="post-user">
+                                        ✍️ {userName}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="post-info">
-                                <h3>{post.title}</h3>
-                                <p className="post-content">{post.content}</p>
-                                <span className="post-user">
-                                    ✍️ {post.isAnonymous ? "익명" : post.user?.displayName || "유저"}
-                                </span>
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>

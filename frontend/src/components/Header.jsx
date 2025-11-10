@@ -15,9 +15,8 @@ const Header = ({ isAuthed, user, onLogout }) => {
         }
     };
 
-    // ✅ 로고 클릭 → 항상 루트 이동 (Link + onClick 이중 보호)
+    // ✅ 로고 클릭 → 항상 홈으로 이동
     const goHome = (e) => {
-        // 혹시 상위에서 click 막는 경우 대비
         e?.preventDefault?.();
         navigate('/');
     };
@@ -25,7 +24,7 @@ const Header = ({ isAuthed, user, onLogout }) => {
     return (
         <header className="site-header">
             <div className="inner">
-                {/* Link + onClick 이중 처리 */}
+                {/* ✅ 로고 */}
                 <h1 className="logo" onClick={goHome} role="button" tabIndex={0}>
                     <Link to="/" className="logo-link" onClick={goHome} aria-label="홈으로 이동">
                         <span className="logo-emoji" aria-hidden>📷</span>
@@ -33,15 +32,26 @@ const Header = ({ isAuthed, user, onLogout }) => {
                     </Link>
                 </h1>
 
+                {/* ✅ 우측 영역 */}
                 <div className="auth-area">
-                    {isAuthed && (
+                    {isAuthed ? (
                         <div className="auth-info">
                             <span className="welcome">
                                 {user?.displayName || user?.email || 'user'}
                             </span>
+
+                            {/* ✅ 마이페이지 버튼 */}
+                            <Link to="/user/mypage" className="btn mypage">
+                                마이페이지
+                            </Link>
+
                             <button className="btn logout" onClick={handleLogout}>
                                 로그아웃
                             </button>
+                        </div>
+                    ) : (
+                        <div className="guest-links">
+                            <Link to="/" className="btn login">로그인</Link>
                         </div>
                     )}
                 </div>

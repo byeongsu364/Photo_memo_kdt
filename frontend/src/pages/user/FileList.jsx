@@ -206,7 +206,7 @@ const FileList = () => {
                         <div className="edit-list">
                             {editItems.map((m, i) => (
                                 <div
-                                    key={m._id}
+                                    key={`제목:${m._id}`}
                                     className={`edit-item ${
                                         m._delete ? "deleted" : ""
                                     }`}
