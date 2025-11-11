@@ -1,4 +1,3 @@
-// routes/memoroutes.js
 const express = require("express");
 const router = express.Router();
 const PhotoMemo = require("../models/PhotoMemo");
@@ -6,52 +5,48 @@ const Post = require("../models/Post");
 const { authenticateToken } = require("../middlewares/auth");
 const { v4: uuidv4 } = require("uuid");
 
-/** truthy만 추려서 업데이트에 사용 */
+// truthy만 추려서 업데이트에 사용
 const pickDefined = (obj) =>
     Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
 
 /**
  * POST /api/memo
  * presigned 업로드(프론트) → imageUrl 넘어옴
- * 단건은 단일 업로드, 다건은 groupId / groupTitle로 묶어서 저장
+ * 단건/다건 상관없이 항상 groupId 부여하도록 수정
  */
 router.post("/", authenticateToken, async (req, res) => {
     try {
         const {
-            // 공통
             type,
             category,
             title,
             content,
             imageUrl,
             isAnonymous,
-
-            // 일상
             date,
-
-            // 여행
             tripName,
             tripStartDate,
             tripEndDate,
             day,
             activity,
-
-            // 그룹 업로드 제어
             groupId,
             groupTitle,
-            totalMemos // (선택) 2개 이상일 때 숫자로 전달
+            totalMemos
         } = req.body;
 
         if (!title) return res.status(400).json({ message: "제목은 필수입니다." });
         if (!imageUrl) return res.status(400).json({ message: "이미지가 없습니다." });
 
-        // 그룹 여부 판단
-        const willGroup = Number(totalMemos) > 1 || !!groupTitle || !!groupId;
-        const resolvedGroupId = groupId || (willGroup ? uuidv4() : null);
-        const resolvedGroupTitle =
-            groupTitle || (willGroup ? (tripName || date || "메모 그룹") : title);
+        // ✅ 항상 groupId 부여 (단일도 포함)
+        const resolvedGroupId = groupId || uuidv4();
 
-        // PhotoMemo 저장
+        // ✅ 그룹 제목도 최소 1개 기본값 보장
+        const resolvedGroupTitle =
+            groupTitle ||
+            tripName ||
+            date ||
+            "포토메모 그룹";
+
         const memo = await PhotoMemo.create({
             user: req.user.id,
             type: type || category || "일상",
@@ -69,7 +64,7 @@ router.post("/", authenticateToken, async (req, res) => {
             groupTitle: resolvedGroupTitle
         });
 
-        // Post에도 복제 (Post에 해당 필드가 없어도 무시되어 안전)
+        // Post에도 복제 (게시판용)
         await Post.create(
             pickDefined({
                 user: req.user.id,
@@ -77,16 +72,13 @@ router.post("/", authenticateToken, async (req, res) => {
                 content,
                 imageUrl,
                 isAnonymous: !!isAnonymous,
-                groupId: resolvedGroupId,     // 스키마에 없으면 무시됨
+                groupId: resolvedGroupId,
                 groupTitle: resolvedGroupTitle,
                 day: type === "여행" ? day : undefined
             })
         );
 
-        console.log(
-            `✅ 업로드 완료 → ${resolvedGroupTitle || title} ${resolvedGroupId ? `(그룹ID: ${resolvedGroupId})` : "(단일)"
-            }`
-        );
+        console.log(`✅ 업로드 완료: ${title} (그룹ID: ${resolvedGroupId})`);
 
         return res.status(201).json({
             message: "포토메모 및 게시글 업로드 완료",
@@ -116,7 +108,8 @@ router.get("/me", authenticateToken, async (req, res) => {
 
 /**
  * GET /api/memo/group/:groupId
- * 같은 그룹의 메모들 조회 (모달에 뿌릴 용도)
+ * 같은 그룹의 메모들 조회
+ * → 단일 메모만 있어도 groupId가 존재하므로 항상 정상 반환
  */
 router.get("/group/:groupId", authenticateToken, async (req, res) => {
     try {
@@ -125,12 +118,26 @@ router.get("/group/:groupId", authenticateToken, async (req, res) => {
             user: req.user.id,
             groupId
         })
-            .sort({ createdAt: 1 }) // 업로드 순서대로
+            .sort({ createdAt: 1 })
             .lean();
 
+        // ✅ 수정: 단일 메모라도 존재하면 성공 응답
         if (!list || list.length === 0) {
+            // 혹시 groupId 없이 단일 저장된 메모 대응
+            const single = await PhotoMemo.findOne({
+                user: req.user.id,
+                _id: groupId
+            }).lean();
+            if (single) {
+                return res.json({
+                    groupId: single.groupId || single._id,
+                    groupTitle: single.groupTitle || single.title,
+                    items: [single]
+                });
+            }
             return res.status(404).json({ message: "그룹 메모가 없습니다." });
         }
+
         return res.json({
             groupId,
             groupTitle: list[0].groupTitle || list[0].title,
@@ -145,14 +152,6 @@ router.get("/group/:groupId", authenticateToken, async (req, res) => {
 /**
  * PUT /api/memo/group/:groupId
  * 그룹 제목 변경 + 개별 메모 수정/삭제 일괄 처리
- * body 예:
- * {
- *   "groupTitle": "새 전체 제목",
- *   "items": [
- *     {"_id":"...", "title":"...", "content":"...", "imageUrl":"..."},
- *     {"_id":"...", "delete": true}
- *   ]
- * }
  */
 router.put("/group/:groupId", authenticateToken, async (req, res) => {
     const session = await PhotoMemo.startSession();
@@ -161,14 +160,13 @@ router.put("/group/:groupId", authenticateToken, async (req, res) => {
         const { groupId } = req.params;
         const { groupTitle, items = [] } = req.body;
 
-        // 현재 그룹 메모들
         const existing = await PhotoMemo.find({ user: req.user.id, groupId }).session(session);
         if (!existing.length) {
             await session.abortTransaction();
             return res.status(404).json({ message: "그룹 메모가 없습니다." });
         }
 
-        // 1) 그룹 제목 변경(있을 때만)
+        // 그룹 제목 변경
         if (groupTitle !== undefined) {
             await PhotoMemo.updateMany(
                 { user: req.user.id, groupId },
@@ -176,7 +174,6 @@ router.put("/group/:groupId", authenticateToken, async (req, res) => {
                 { session }
             );
 
-            // Post에 groupId가 없다면 직접 매핑 불가 → 그룹의 모든 imageUrl을 모아 제목 갱신
             const imageUrls = existing.map((m) => m.imageUrl).filter(Boolean);
             if (imageUrls.length) {
                 await Post.updateMany(
@@ -187,13 +184,12 @@ router.put("/group/:groupId", authenticateToken, async (req, res) => {
             }
         }
 
-        // 2) 각 item 처리
+        // 개별 아이템 처리
         for (const it of items) {
             const { _id, delete: willDelete, title, content, imageUrl, isAnonymous } = it || {};
             if (!_id) continue;
 
             if (willDelete) {
-                // memo 삭제
                 const deleted = await PhotoMemo.findOneAndDelete(
                     { _id, user: req.user.id },
                     { session }
@@ -207,7 +203,6 @@ router.put("/group/:groupId", authenticateToken, async (req, res) => {
                 continue;
             }
 
-            // memo 수정
             const updated = await PhotoMemo.findOneAndUpdate(
                 { _id, user: req.user.id },
                 {
@@ -239,8 +234,6 @@ router.put("/group/:groupId", authenticateToken, async (req, res) => {
         }
 
         await session.commitTransaction();
-
-        // 최신 상태 반환
         const fresh = await PhotoMemo.find({ user: req.user.id, groupId }).sort({ createdAt: 1 });
         return res.json({
             message: "그룹 업데이트 완료",

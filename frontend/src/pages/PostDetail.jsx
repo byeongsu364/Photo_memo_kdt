@@ -14,21 +14,33 @@ const PostDetail = () => {
     useEffect(() => {
         const loadData = async () => {
             try {
-                // ✅ 그룹 게시글 시도
+                // ✅ 1️⃣ 그룹 게시글 먼저 시도 (1개짜리도 포함)
                 const groupData = await fetchGroupMemos(id);
-                if (groupData && groupData.items?.length > 0) {
+                if (groupData && Array.isArray(groupData.items) && groupData.items.length >= 1) {
                     setGroup(groupData);
-                } else {
-                    // ✅ 그룹 데이터 없으면 단일 게시글 조회
-                    const postData = await fetchPostDetail(id);
-                    setSingle(postData);
+                    setLoading(false);
+                    return; // ✅ 여기서 return 빠졌던 게 핵심
                 }
-            } catch (err) {
-                console.error("❌ 상세 로드 실패:", err);
+            } catch (groupErr) {
+                console.warn("⚠️ 그룹 게시글 아님, 단일 게시글로 시도");
+            }
+
+            try {
+                // ✅ 2️⃣ 단일 게시글로 시도
+                const postData = await fetchPostDetail(id);
+                if (postData) {
+                    setSingle(postData);
+                    setLoading(false);
+                    return;
+                }
+            } catch (singleErr) {
+                console.error("❌ 단일 게시글 로드 실패:", singleErr);
+                setSingle(null);
             } finally {
                 setLoading(false);
             }
         };
+
         loadData();
     }, [id]);
 

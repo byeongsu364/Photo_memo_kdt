@@ -5,6 +5,7 @@
     padding: 0 20px;
     color: var(--text);
 
+    /* ✅ 제목 */
     h2 {
         font-size: 1.8rem;
         font-weight: 800;
@@ -15,13 +16,15 @@
         -webkit-text-fill-color: transparent;
     }
 
+    /* ✅ 작성자 */
     .post-user {
         text-align: center;
-        font-size: 1rem;
+        font-size: 0.95rem;
         color: var(--muted);
         margin-bottom: 2rem;
     }
 
+    /* ✅ 돌아가기 버튼 */
     .back-btn {
         background: var(--primary);
         color: #fff;
@@ -45,6 +48,7 @@
         gap: 28px;
     }
 
+    /* ✅ 그룹 메모 카드 */
     .memo-card {
         background: var(--surface);
         border: 1px solid var(--border);
@@ -58,6 +62,7 @@
         &:hover {
             transform: translateY(-6px);
             box-shadow: var(--shadow-medium);
+            border-color: var(--primary);
         }
 
         img {
@@ -74,20 +79,35 @@
 
         .memo-info {
             padding: 18px 20px 22px;
+            text-align: center;
 
             h3 {
-                font-size: 1.1rem;
+                font-size: 1.15rem;
                 font-weight: 700;
                 color: var(--dark-bl);
-                margin-bottom: 6px;
+                margin-bottom: 8px;
+                line-height: 1.4;
+                transition: color 0.25s ease;
             }
 
+            /* ✅ 내용 부분 */
             p {
                 font-size: 0.95rem;
                 color: var(--muted);
-                line-height: 1.5;
+                line-height: 1.6;
                 white-space: pre-line;
+                text-align: center;
+                transition: color 0.25s ease;
             }
+        }
+
+        /* ✅ hover 효과 */
+        &:hover .memo-info h3 {
+            color: var(--primary-hover);
+        }
+
+        &:hover .memo-info p {
+            color: var(--primary-light);
         }
     }
 
@@ -112,7 +132,17 @@
         }
 
         .memo-info {
-            padding: 1.5rem;
+            padding: 1.8rem;
+            text-align: center;
+
+            h3 {
+                font-size: 1.6rem;
+                font-weight: 700;
+                color: var(--dark-bl);
+                margin-bottom: 0.8rem;
+                line-height: 1.5;
+            }
+
             p {
                 font-size: 1rem;
                 color: var(--muted);
@@ -120,8 +150,18 @@
                 white-space: pre-line;
             }
         }
+
+        /* ✅ hover 효과 (단일) */
+        &:hover .memo-info h3 {
+            color: var(--primary-hover);
+        }
+
+        &:hover .memo-info p {
+            color: var(--primary-light);
+        }
     }
 
+    /* ✅ 반응형 */
     @media (max-width: 768px) {
         .post-gallery {
             grid-template-columns: 1fr;
