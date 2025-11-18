@@ -179,7 +179,7 @@ const AuthModal = ({
                         </div>
                     ) : attemptInfo.attempts != null ? (
                         <div className='am-subtle'>
-                            로그인 실패 횟쉬:{attemptInfo.attempts}/5
+                            로그인 실패 횟수:{attemptInfo.attempts}/5
                             {typeof attemptInfo.remaining === 'number' && `(남은 시도: ${attemptInfo.remaining})`}
                         </div>
                     ) : null}

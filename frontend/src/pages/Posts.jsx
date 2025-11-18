@@ -69,8 +69,18 @@ const Posts = () => {
 
     // ✅ 그룹 클릭 시 상세 페이지 이동
     const handleClickGroup = (groupId) => {
+        const isLoggedIn = !!localStorage.getItem("token"); // 로그인 여부 확인
+
+        if (!isLoggedIn) {
+            // ⭐ 로그인 안돼있으면 Admin 로그인 페이지로 이동
+            alert("회원만 이용 가능합니다.");
+            navigate("/admin/login");
+            return;
+        }
+
         navigate(`/posts/${groupId}`);
     };
+
 
     const groupEntries = Object.entries(filteredGroups);
 
@@ -86,10 +96,10 @@ const Posts = () => {
             ) : (
                 <div className="posts-grid">
                     {groupEntries.map(([groupId, items]) => {
-                        const first = items[0];
+                const first = items[0];
                         const title = first.groupTitle || first.title;
                         const representativeImage = first.imageUrl;
-                        const userName = first.isAnonymous
+            const userName = first.isAnonymous
                             ? "익명"
                             : first.user?.displayName || "user";
                         const dateStr = new Date(first.createdAt).toLocaleDateString("ko-KR", {

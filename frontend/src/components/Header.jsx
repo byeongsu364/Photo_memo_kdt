@@ -51,7 +51,7 @@ const Header = ({ isAuthed, user, onLogout }) => {
                         </div>
                     ) : (
                         <div className="guest-links">
-                            <Link to="/" className="btn login">로그인</Link>
+                            <Link to="/admin/login" className="btn login">로그인</Link>
                         </div>
                     )}
                 </div>
