@@ -3,7 +3,11 @@ const router = express.Router();
 const PhotoMemo = require("../models/PhotoMemo");
 const Post = require("../models/Post");
 const { authenticateToken } = require("../middlewares/auth");
-const { v4: uuidv4 } = require("uuid");
+const crypto = require("crypto");
+function uuidv4() {
+    return crypto.randomUUID();
+}
+
 
 // truthy만 추려서 업데이트에 사용
 const pickDefined = (obj) =>
