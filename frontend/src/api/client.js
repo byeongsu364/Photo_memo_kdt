@@ -2,13 +2,27 @@
 import axios from "axios";
 
 /* ============================================================
+   ⚙️ 백엔드 URL 자동 선택 (로컬 + 배포 모두 지원)
+============================================================ */
+let BASE_URL = "";
+
+// 로컬 환경 (localhost에서 열렸을 때)
+if (window.location.hostname === "localhost") {
+    BASE_URL = import.meta.env.VITE_API_LOCAL_URL || "http://localhost:3000";
+} 
+// 배포 환경 (Vercel 등)
+else {
+    BASE_URL = import.meta.env.VITE_API_URL;
+}
+
+console.log("📡 선택된 API URL =", BASE_URL);
+
+/* ============================================================
    ⚙️ Axios 기본 설정
 ============================================================ */
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
 const api = axios.create({
     baseURL: BASE_URL,
-    withCredentials: true, // ✅ 쿠키 및 인증정보 포함
+    withCredentials: true,
     headers: {
         "Content-Type": "application/json",
     },
@@ -34,7 +48,7 @@ api.interceptors.response.use(
     (err) => {
         const code = err?.response?.status;
         if (code === 401 || code === 403) {
-            console.warn("🚫 인증 만료 — 자동 로그아웃 처리됨");
+            console.warn("🚫 인증 만료 — 자동 로그아웃");
             localStorage.removeItem("token");
             localStorage.removeItem("user");
             window.location.href = "/";
@@ -67,26 +81,34 @@ function mimeByExt(name) {
     return map[ext] || "application/octet-stream";
 }
 
-// ✅ presign 요청 → S3 업로드 URL 발급
+// presign 요청 → S3 업로드 URL 발급
 export async function getPresignedUrl(filename, contentType) {
     const payload = {
         filename,
         contentType: contentType || mimeByExt(filename),
     };
+
     console.log("📤 presign 요청:", payload);
-    const { data } = await api.post("/api/upload/presign", payload);
+
+    const { data } = await api.post("/api/upload/presign", payload, {
+        headers: { "Content-Type": "application/json" },
+    });
+
     console.log("📥 presign 응답:", data);
-    return data; // { url, key }
+    return data;
 }
 
-// ✅ S3로 실제 업로드
+// S3로 실제 업로드
 export async function uploadToS3(file, url) {
     await fetch(url, {
         method: "PUT",
-        headers: { "Content-Type": file.type || mimeByExt(file.name) },
+        headers: {
+            "Content-Type": file.type || mimeByExt(file.name),
+        },
         body: file,
     });
-    return url.split("?")[0]; // S3 접근 URL
+
+    return url.split("?")[0];
 }
 
 /* ============================================================
@@ -128,7 +150,6 @@ export function clearAuthStorage() {
 /* ============================================================
    📸 포토메모 관련 API
 ============================================================ */
-// ✅ 그룹 업로드 포함 버전
 export async function uploadMemo({
     title,
     content,
@@ -150,26 +171,25 @@ export async function uploadMemo({
         totalMemos,
     };
 
-    console.log("📤 업로드 요청 payload:", payload);
+    console.log("📤 업로드 payload:", payload);
+
     const { data } = await api.post("/api/memo", payload);
     return data;
 }
 
-// ✅ 내 메모 조회
 export async function fetchMyMemos() {
     const { data } = await api.get("/api/memo/me");
     return data;
 }
 
-// ✅ 메모 삭제
 export async function deleteMemo(id) {
     const { data } = await api.delete(`/api/memo/${id}`);
     return data;
 }
 
-// ✅ 메모 수정
 export async function updateMemo(id, { title, content, category, image }) {
     let imageUrl;
+
     if (image) {
         const { url } = await getPresignedUrl(image.name, image.type);
         imageUrl = await uploadToS3(image, url);
@@ -183,18 +203,18 @@ export async function updateMemo(id, { title, content, category, image }) {
 }
 
 /* ============================================================
-   🧩 그룹 메모 관련 API
+   🧩 그룹 메모 API
 ============================================================ */
-// ✅ 그룹 전체 조회
 export async function fetchGroupMemos(groupId) {
     const { data } = await api.get(`/api/memo/group/${groupId}`);
-    return data; // { groupId, groupTitle, items: [...] }
+    return data;
 }
 
-// ✅ 그룹 수정/삭제 일괄 업데이트
 export async function updateGroupMemos(groupId, { groupTitle, items }) {
-    const payload = { groupTitle, items };
-    const { data } = await api.put(`/api/memo/group/${groupId}`, payload);
+    const { data } = await api.put(`/api/memo/group/${groupId}`, {
+        groupTitle,
+        items,
+    });
     return data;
 }
 
