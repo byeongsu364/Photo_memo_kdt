@@ -47,13 +47,47 @@
         }
     }
 
+
+    /* 🔥 중앙 메뉴 */
+    .center-nav {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 32px;
+
+        .nav-item {
+            font-size: 16px;
+            font-weight: 400;
+            color: #333;
+            text-decoration: none;
+
+            &:hover {
+                color: #000;
+            }
+        }
+    }
+
+
     /* ✅ 인증 영역 */
     .auth-area {
         display: flex;
         align-items: center;
         gap: 1rem;
 
+        .auth-info {
+            display: flex;
+        }
+
+        .auth-btn-wrap {
+            display: flex;
+            gap: .2rem;
+        }
+
         .welcome {
+            display: flex;
+            justify-content: center;
+            align-items: center;
             font-size: 1.4rem;
             color: var(--text);
             margin-right: 0.8rem;

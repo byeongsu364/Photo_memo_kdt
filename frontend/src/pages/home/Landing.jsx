@@ -1,9 +1,10 @@
 import React from 'react'
-import "./styles/Landing.scss"
+import './styles/Landing.scss'
 import { Link } from 'react-router-dom'
+import { useLanding } from './hooks/useLanding'
 
 const Landing = () => {
-    const isAuthed = !!localStorage.getItem("token")
+    const { writePath } = useLanding()
 
     return (
         <section className="landing">
@@ -16,16 +17,11 @@ const Landing = () => {
                     </p>
 
                     <div className="landing-buttons">
-                        {/* ✅ 전체 글 보기 (누구나 가능) */}
                         <Link to="/posts" className="btn btn-outline">
                             시작하기
                         </Link>
 
-                        {/* ✅ 로그인 상태면 대시보드로, 아니면 로그인 화면으로 */}
-                        <Link
-                            to={isAuthed ? "/user/dashboard" : "/admin/login"}
-                            className="btn primary"
-                        >
+                        <Link to={writePath} className="btn primary">
                             글쓰기
                         </Link>
                     </div>
