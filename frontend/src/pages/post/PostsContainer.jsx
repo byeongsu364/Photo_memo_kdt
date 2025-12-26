@@ -5,15 +5,15 @@ import { usePosts } from "./hooks/usePosts";
 const PostsContainer = () => {
     const {
         groupedPosts,
-        handleSearch,
-        handleClickGroup,
+        onSearch,
+        onClickGroup,
     } = usePosts();
 
     return (
         <Posts
             groupedPosts={groupedPosts}
-            onSearch={handleSearch}
-            onClickGroup={handleClickGroup}
+            onSearch={onSearch}
+            onClickGroup={onClickGroup}
         />
     );
 };

@@ -17,7 +17,7 @@ export const usePosts = () => {
                 setLoading(true);
                 const data = await fetchAllPosts();
 
-                // ✅ groupId 기준 그룹화
+                // ✅ groupId 기준 그룹화 (없으면 단일 post)
                 const grouped = (data || []).reduce((acc, post) => {
                     const key = post.groupId || post._id;
                     if (!acc[key]) acc[key] = [];
@@ -41,6 +41,7 @@ export const usePosts = () => {
         };
 
         loadPosts();
+
         return () => {
             mounted = false;
         };
@@ -58,7 +59,7 @@ export const usePosts = () => {
         const lower = q.toLowerCase();
 
         const filtered = Object.entries(groupedPosts).reduce(
-            (acc, [groupId, items]) => {
+            (acc, [groupKey, items]) => {
                 const first = items?.[0];
                 if (!first) return acc;
 
@@ -81,7 +82,7 @@ export const usePosts = () => {
                     userName.toLowerCase().includes(lower) ||
                     dateStr.includes(lower);
 
-                if (match) acc[groupId] = items;
+                if (match) acc[groupKey] = items;
                 return acc;
             },
             {}
@@ -90,8 +91,8 @@ export const usePosts = () => {
         setFilteredGroups(filtered);
     };
 
-    /* 🔹 카드 클릭 */
-    const onClickGroup = (groupId) => {
+    /* 🔹 카드 클릭 (🔥 그룹 전체 보기) */
+    const onClickGroup = (groupKey) => {
         const isLoggedIn = !!localStorage.getItem("token");
 
         if (!isLoggedIn) {
@@ -100,13 +101,14 @@ export const usePosts = () => {
             return;
         }
 
-        navigate(`/posts/${groupId}`);
+        // ✅ 그룹 상세는 반드시 groupId로 이동
+        navigate(`/posts/${groupKey}`);
     };
 
-    /* ✅ UI가 그대로 쓰는 형태로 반환 */
+    /* ✅ UI에서 그대로 쓰는 형태 */
     return {
         loading,
-        groupedPosts: filteredGroups, // 🔥 핵심
+        groupedPosts: filteredGroups,
         onSearch,
         onClickGroup,
     };

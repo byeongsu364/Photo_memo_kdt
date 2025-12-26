@@ -13,6 +13,7 @@ import FileList from "./pages/user/FileList"
 import Posts from "./pages/post/Posts"
 import PostsContainer from "./pages/post/PostsContainer"
 import PostDetail from "./pages/post/PostDetail"
+import PostDetailContainer from "./pages/post/PostDetailContainer"
 import MyPage from "./pages/user/MyPage"
 
 import { useAuth } from "./hooks/useAuth"
@@ -47,7 +48,7 @@ function App() {
                 <Route path="/" element={<Landing />} />
 
                 <Route path="/posts" element={<PostsContainer />} />
-                <Route path="/posts/:id" element={<PostDetail />} />
+                <Route path="/posts/:id" element={<PostDetailContainer />} />
 
                 <Route
                     path="/admin/login"

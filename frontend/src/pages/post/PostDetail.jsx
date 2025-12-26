@@ -34,7 +34,7 @@ const PostDetail = ({
 
                 <div className="post-gallery">
                     {items.map((m) => (
-                        <div key={m.id} className="memo-card">
+                        <div key={m._id} className="memo-card">
                             <img src={m.imageUrl} alt={m.title} />
                             <div className="memo-info">
                                 <h3>{m.title}</h3>
@@ -54,16 +54,16 @@ const PostDetail = ({
                 ← 돌아가기
             </button>
 
-            <h2>📷 {single.title}</h2>
-            <p className="post-user">✍️ 작성자: {single.userName}</p>
+        <h2>📷 {single.title}</h2>
+        <p className="post-user">✍️ 작성자: {single.userName}</p>
 
-            <div className="single-post">
-                <img src={single.imageUrl} alt={single.title} />
-                <div className="memo-info">
-                    <p>{single.content}</p>
-                </div>
+        <div className="single-post">
+            <img src={single.imageUrl} alt={single.title} />
+            <div className="memo-info">
+                <p>{single.content}</p>
             </div>
         </div>
+    </div>
     );
 };
 

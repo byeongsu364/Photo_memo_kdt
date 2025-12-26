@@ -21,6 +21,31 @@
         margin-bottom: 0.4rem;
     }
 
+    /* =========================
+       ✅ STEP 진행 바
+    ========================= */
+    .step-bar {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.8rem;
+        margin-bottom: 1.2rem;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--muted);
+
+        span {
+            &.active {
+                color: var(--primary);
+            }
+        }
+
+        .step-sep {
+            color: var(--border);
+            font-weight: 400;
+        }
+    }
+
     form {
         width: 100%;
         display: flex;
@@ -51,7 +76,9 @@
             resize: vertical;
         }
 
-        /* ✅ 여행 제목 */
+        /* =========================
+           ✅ 여행 제목
+        ========================= */
         .trip-title {
             display: flex;
             flex-direction: column;
@@ -62,25 +89,39 @@
                 color: var(--text);
                 font-size: 1.4rem;
             }
-
-            input {
-                border: 0.1rem solid var(--border);
-                border-radius: var(--radius-s);
-                padding: 1rem;
-            }
         }
 
-        /* ✅ 썸네일 업로드 */
-        .trip-thumbnail {
+        /* =========================
+           ✅ 여행 기간
+        ========================= */
+        .trip-range {
             display: flex;
             flex-direction: column;
             gap: 0.6rem;
 
-            label {
-                font-weight: 600;
-                color: var(--text);
-                font-size: 1.4rem;
+            .range-inputs {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+
+                input {
+                    flex: 1;
+                }
+
+                span {
+                    color: var(--muted);
+                    font-weight: 500;
+                }
             }
+        }
+
+        /* =========================
+           ✅ 썸네일 업로드
+        ========================= */
+        .trip-thumbnail {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
 
             input[type="file"] {
                 border: 0.1rem dashed var(--border);
@@ -108,35 +149,54 @@
             }
         }
 
-        /* ✅ 여행 기간 */
-        .trip-range {
+        /* =========================
+           ✅ DAY 섹션 (STEP 2)
+        ========================= */
+        .day-section {
+            background: var(--surface);
+            border-radius: var(--radius-l);
+            border: 0.1rem solid var(--border);
+            padding: 1.6rem;
             display: flex;
             flex-direction: column;
-            gap: 0.6rem;
+            gap: 1.2rem;
+            box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.05);
+            cursor: grab;
 
-            label {
-                font-weight: 600;
-                color: var(--text);
-                font-size: 1.4rem;
+            &:active {
+                cursor: grabbing;
             }
 
-            .range-inputs {
+            /* DAY 헤더 */
+            .day-header {
                 display: flex;
+                justify-content: space-between;
                 align-items: center;
-                gap: 1rem;
 
-                input {
-                    flex: 1;
+                .day-title {
+                    font-size: 1.6rem;
+                    font-weight: 700;
+                    color: var(--primary);
                 }
 
-                span {
-                    color: var(--muted);
-                    font-weight: 500;
+                button {
+                    background: transparent;
+                    border: none;
+                    font-size: 1.2rem;
+                    cursor: pointer;
+                    color: #d32f2f;
+                    transition: transform 0.2s ease;
+
+                    &:hover {
+                        transform: scale(1.1);
+                    }
                 }
             }
         }
 
-        /* ✅ Day별 메모 카드 */
+        /* =========================
+           ✅ 메모 카드
+        ========================= */
         .entry-box {
             background: var(--bg);
             border-radius: var(--radius-l);
@@ -146,23 +206,15 @@
             flex-direction: column;
             gap: 0.8rem;
             box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.05);
-            transition: background 0.2s ease, transform 0.2s ease;
-
-            &:hover {
-                background: #fafafa;
-                transform: translateY(-2px);
-            }
 
             .entry-header {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 0.4rem;
 
                 .entry-label {
                     font-weight: 600;
                     color: var(--primary);
-                    font-size: 1.5rem;
                 }
 
                 .delete-btn {
@@ -171,16 +223,9 @@
                     font-size: 1.8rem;
                     color: #d32f2f;
                     cursor: pointer;
-                    transition: transform 0.2s ease, color 0.2s ease;
 
                     &:hover {
-                        color: #b71c1c;
                         transform: scale(1.2);
-                    }
-
-                    &:disabled {
-                        opacity: 0.4;
-                        cursor: not-allowed;
                     }
                 }
             }
@@ -190,38 +235,37 @@
                 padding: 0.8rem;
                 background: var(--surface);
                 cursor: pointer;
-                transition: 0.2s ease;
 
                 &:hover {
                     border-color: var(--primary);
-                    background: #f9faff;
                 }
             }
         }
 
-        /* ✅ 메모 추가 버튼 */
-        .add-btn {
+        /* =========================
+           ✅ 버튼 공통
+        ========================= */
+        .add-btn,
+        .next-btn {
             background: var(--primary);
             color: var(--primary-contrast);
             border: none;
             font-weight: 600;
             font-size: 1.4rem;
             border-radius: var(--radius-s);
-            margin-top: 1rem;
             padding: 1rem;
-            transition: background 0.2s ease, transform 0.1s ease;
+            transition: 0.2s ease;
 
             &:hover {
                 background: #1c7ed6;
-                transform: translateY(-0.1rem);
             }
 
-            &:active {
-                transform: translateY(0);
+            &:disabled {
+                background: var(--border);
+                cursor: not-allowed;
             }
         }
 
-        /* ✅ 저장 버튼 */
         .submit-btn {
             background: var(--primary);
             color: var(--primary-contrast);
@@ -232,40 +276,58 @@
             border-radius: var(--radius-s);
             letter-spacing: 0.05rem;
             transition: 0.2s ease;
-            box-shadow: 0 0.3rem 0.6rem rgba(0, 0, 0, 0.1);
 
             &:hover {
                 background: #1c7ed6;
             }
-
-            &:active {
-                background: #1864ab;
-                transform: scale(0.98);
-            }
         }
     }
 
-    /* ✅ 상태 표시 */
+    .plus-btn {
+        background: var(--primary);
+        color: var(--primary-contrast);
+
+        &:hover {
+                background: #1c7ed6;
+            }
+    }
+
+    /* ✅ 이전 버튼 (초록색) */
+.btn.back-btn {
+    background: #2e7d32;              /* 기본 초록 */
+    color: #ffffff;
+    border: none;
+    font-weight: 700;
+    font-size: 1.4rem;
+    padding: 1.1rem;
+    border-radius: var(--radius-s);
+    transition: background 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 0.3rem 0.6rem rgba(0, 0, 0, 0.1);
+
+    &:hover {
+        background: #1b5e20;          /* hover 진한 초록 */
+    }
+
+    &:active {
+        background: #1b5e20;
+        transform: scale(0.98);
+    }
+}
+
+    /* =========================
+       ✅ 상태 표시
+    ========================= */
     .status {
         margin-top: 1.2rem;
         font-size: 1.4rem;
         font-weight: 600;
         text-align: center;
-
-        &.success {
-            color: #2e7d32;
-        }
-
-        &.error {
-            color: #c62828;
-        }
-
-        &.loading {
-            color: var(--muted);
-        }
+        color: var(--muted);
     }
 
-    /* ✅ 반응형 */
+    /* =========================
+       ✅ 반응형
+    ========================= */
     @media (max-width: 600px) {
         padding: 2rem 1.4rem;
         margin: 4rem auto;
@@ -278,14 +340,6 @@
             textarea {
                 font-size: 1.3rem;
                 padding: 0.9rem;
-            }
-        }
-
-        .entry-box {
-            .entry-header {
-                .entry-label {
-                    font-size: 1.3rem;
-                }
             }
         }
 

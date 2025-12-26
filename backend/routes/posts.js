@@ -180,4 +180,39 @@ router.delete("/:id", authenticateToken, ensureObjectId, async (req, res) => {
     }
 });
 
+// ✅ 단일 게시글 조회
+router.get("/:id", ensureObjectId, async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id)
+            .populate("user", "displayName")
+            .lean();
+
+        if (!post) {
+            return res.status(404).json({ message: "게시글을 찾을 수 없습니다." });
+        }
+
+        const raw = Array.isArray(post.fileUrl)
+            ? post.fileUrl
+            : post.imageUrl
+            ? [post.imageUrl]
+            : [];
+
+        const urls = raw.map((v) =>
+            v.startsWith("http") ? v : joinS3Url(S3_BASE_URL, v)
+        );
+
+        res.json({
+            ...post,
+            fileUrl: urls,
+            author: post.isAnonymous
+                ? "익명"
+                : post.user?.displayName || "탈퇴한 사용자",
+        });
+    } catch (error) {
+        console.error("GET /api/posts/:id 실패:", error);
+        res.status(500).json({ message: "서버 오류" });
+    }
+});
+
+
 module.exports = router;
