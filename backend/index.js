@@ -9,50 +9,39 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// JSON 파싱
+/* ============================================================
+   🔧 파서 설정
+============================================================ */
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 /* ============================================================
-   ⭐ CORS 설정 — 로컬 + Vercel + CloudType + 프리뷰 모두 지원
+   ⭐ CORS 최종본 — 로컬 + Vercel + CloudType 완전 지원
 ============================================================ */
+const allowedOrigins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+
+    // Vercel 공식 URL
+    "https://photo-memo-kdt.vercel.app",
+
+    // CloudType 백엔드 주소
+    "https://port-0-photo-memo-kdt-mem3xhkp6425f75b.sel5.cloudtype.app",
+];
+
 app.use(
     cors({
         origin: function (origin, callback) {
-            const allowed = [
-                // 로컬 개발 환경
-                "http://localhost:5173",
-                "http://localhost:3000",
+            if (!origin) return callback(null, true); // Postman 등
 
-                // Vercel 정식 배포 도메인
-                "https://photo-memo-kdt.vercel.app",
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
 
-                // Vercel 프리뷰 도메인 허용 (*.vercel.app)
-                /^https:\/\/.*\.vercel\.app$/,
-
-                // CloudType 백엔드 도메인
-                "https://port-0-photo-memo-kdt-mem3xhkp6425f75b.sel5.cloudtype.app",
-
-                // CloudType 프리뷰 도메인 (*.cloudtype.app)
-                /^https:\/\/.*\.cloudtype\.app$/,
-            ];
-
-            // origin이 없으면 허용 (Postman 등)
-            if (!origin) return callback(null, true);
-
-            // 문자열 매칭 또는 정규식 매칭
-            const isAllowed = allowed.some((rule) => {
-                if (typeof rule === "string") return rule === origin;
-                if (rule instanceof RegExp) return rule.test(origin);
-            });
-
-            if (isAllowed) return callback(null, true);
-
-            console.log("❌ CORS 차단됨:", origin);
-            return callback(new Error("CORS Blocked: " + origin), false);
+            console.log("❌ CORS BLOCKED:", origin);
+            return callback(new Error("CORS blocked: " + origin), false);
         },
-
         credentials: true,
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allowedHeaders: ["Content-Type", "Authorization"],
@@ -69,14 +58,14 @@ mongoose
     .catch((err) => console.error("❌ MongoDB 연결 실패:", err.message));
 
 /* ============================================================
-   📌 기본 라우트 (서버 올라왔는지 확인)
+   📌 기본 라우트
 ============================================================ */
 app.get("/", (_req, res) =>
     res.send("📸 PhotoMemo + Post API 정상 작동 중 🚀")
 );
 
 /* ============================================================
-   📌 실제 API 라우터 등록
+   📌 실제 API 라우터
 ============================================================ */
 app.use("/api/auth", require("./routes/authroutes"));
 app.use("/api/memo", require("./routes/memoroutes"));
@@ -91,7 +80,7 @@ app.use((req, res) => {
 });
 
 /* ============================================================
-   ❗ 500 처리 (공통 오류 핸들러)
+   ❗ 500 에러 처리
 ============================================================ */
 app.use((err, req, res, next) => {
     console.error("🔥 서버 오류:", err);

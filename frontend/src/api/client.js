@@ -1,35 +1,20 @@
-// src/api/client.js
 import axios from "axios";
-
-/* ============================================================
-   ⚙️ 백엔드 URL 자동 선택 (로컬 + 배포 모두 지원)
-============================================================ */
-let BASE_URL = "";
-
-// 로컬 환경 (localhost에서 열렸을 때)
-if (window.location.hostname === "localhost") {
-    BASE_URL = import.meta.env.VITE_API_LOCAL_URL || "http://localhost:3000";
-} 
-// 배포 환경 (Vercel 등)
-else {
-    BASE_URL = import.meta.env.VITE_API_URL;
-}
-
-console.log("📡 선택된 API URL =", BASE_URL);
 
 /* ============================================================
    ⚙️ Axios 기본 설정
 ============================================================ */
+const BASE_URL =
+    import.meta.env.VITE_API_URL ||
+    "http://localhost:3000";
+
 const api = axios.create({
     baseURL: BASE_URL,
-    withCredentials: true,
-    headers: {
-        "Content-Type": "application/json",
-    },
+    withCredentials: true, 
+    headers: { "Content-Type": "application/json" },
 });
 
 /* ============================================================
-   🪪 JWT 자동 첨부 인터셉터
+   🪪 JWT 자동 첨부
 ============================================================ */
 api.interceptors.request.use(
     (config) => {
@@ -41,14 +26,14 @@ api.interceptors.request.use(
 );
 
 /* ============================================================
-   🚨 응답 인터셉터 — 인증 만료 처리
+   🚨 인증 만료 처리
 ============================================================ */
 api.interceptors.response.use(
     (res) => res,
     (err) => {
         const code = err?.response?.status;
         if (code === 401 || code === 403) {
-            console.warn("🚫 인증 만료 — 자동 로그아웃");
+            console.warn("🚫 인증 만료 — 자동 로그아웃 처리됨");
             localStorage.removeItem("token");
             localStorage.removeItem("user");
             window.location.href = "/";
@@ -65,7 +50,7 @@ export function getErrorMessage(error, fallback = "요청 실패") {
 }
 
 /* ============================================================
-   ☁️ S3 Presigned URL 관련 API
+   ☁️ S3 Presigned URL
 ============================================================ */
 function mimeByExt(name) {
     const ext = name.split(".").pop()?.toLowerCase();
@@ -81,38 +66,23 @@ function mimeByExt(name) {
     return map[ext] || "application/octet-stream";
 }
 
-// presign 요청 → S3 업로드 URL 발급
 export async function getPresignedUrl(filename, contentType) {
-    const payload = {
-        filename,
-        contentType: contentType || mimeByExt(filename),
-    };
-
-    console.log("📤 presign 요청:", payload);
-
-    const { data } = await api.post("/api/upload/presign", payload, {
-        headers: { "Content-Type": "application/json" },
-    });
-
-    console.log("📥 presign 응답:", data);
-    return data;
+    const payload = { filename, contentType: contentType || mimeByExt(filename) };
+    const { data } = await api.post("/api/upload/presign", payload);
+    return data; 
 }
 
-// S3로 실제 업로드
 export async function uploadToS3(file, url) {
     await fetch(url, {
         method: "PUT",
-        headers: {
-            "Content-Type": file.type || mimeByExt(file.name),
-        },
+        headers: { "Content-Type": file.type || mimeByExt(file.name) },
         body: file,
     });
-
     return url.split("?")[0];
 }
 
 /* ============================================================
-   🧾 인증(Auth) 관련 API
+   🧾 인증(Auth)
 ============================================================ */
 export async function register({ email, password, displayName }) {
     const { data } = await api.post("/api/auth/register", {
@@ -148,31 +118,9 @@ export function clearAuthStorage() {
 }
 
 /* ============================================================
-   📸 포토메모 관련 API
+   📸 포토메모
 ============================================================ */
-export async function uploadMemo({
-    title,
-    content,
-    category,
-    imageUrl,
-    isAnonymous,
-    groupId,
-    groupTitle,
-    totalMemos,
-}) {
-    const payload = {
-        title,
-        content,
-        category,
-        imageUrl,
-        isAnonymous,
-        groupId,
-        groupTitle,
-        totalMemos,
-    };
-
-    console.log("📤 업로드 payload:", payload);
-
+export async function uploadMemo(payload) {
     const { data } = await api.post("/api/memo", payload);
     return data;
 }
@@ -203,7 +151,7 @@ export async function updateMemo(id, { title, content, category, image }) {
 }
 
 /* ============================================================
-   🧩 그룹 메모 API
+   🧩 그룹
 ============================================================ */
 export async function fetchGroupMemos(groupId) {
     const { data } = await api.get(`/api/memo/group/${groupId}`);
@@ -211,15 +159,13 @@ export async function fetchGroupMemos(groupId) {
 }
 
 export async function updateGroupMemos(groupId, { groupTitle, items }) {
-    const { data } = await api.put(`/api/memo/group/${groupId}`, {
-        groupTitle,
-        items,
-    });
+    const payload = { groupTitle, items };
+    const { data } = await api.put(`/api/memo/group/${groupId}`, payload);
     return data;
 }
 
 /* ============================================================
-   📰 게시글(Post) 관련 API
+   📰 게시글(Post)
 ============================================================ */
 export async function fetchAllPosts() {
     const { data } = await api.get("/api/posts");

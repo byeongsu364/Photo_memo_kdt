@@ -3,8 +3,7 @@ import { v4 as uuidv4 } from "uuid"; // ✅ 추가
 import {
     getPresignedUrl,
     uploadToS3,
-    uploadMemo,
-    getErrorMessage,
+    uploadMemo
 } from "../../api/client";
 import "./style/UploadForm.scss";
 
