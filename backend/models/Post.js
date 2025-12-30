@@ -1,88 +1,94 @@
 const mongoose = require("mongoose");
-const crypto = require("crypto");  // ← uuid 대신 crypto 사용
+const crypto = require("crypto");
 
-// 랜덤 ID 생성 함수
+// 랜덤 ID 생성
 function generateUUID() {
     return crypto.randomUUID();
 }
 
-// ✅ 자동 증가용 Counter 스키마
+/* ============================
+   자동 증가 Counter
+============================ */
 const counterSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
     seq: { type: Number, default: 0 },
 });
 const Counter = mongoose.model("Counter", counterSchema);
 
-// ✅ 게시글 스키마
+/* ============================
+   게시글(Post) 스키마
+============================ */
 const postSchema = new mongoose.Schema(
     {
-        // 작성자
         user: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true,
         },
 
-        // 게시글 고유 번호 (자동 증가)
         number: {
             type: Number,
             unique: true,
         },
 
-        // 제목
+        category: {
+            type: String,
+            enum: ["일상", "여행"],
+            required: true,
+        },
+
         title: {
             type: String,
             required: true,
             trim: true,
         },
 
-        // 내용
         content: {
             type: String,
             required: true,
             trim: true,
         },
 
-        // 대표 이미지
-        imageUrl: {
+        /*
+         썸네일 규칙
+         - 여행: 업로드한 thumbnailUrl 사용
+         - 일상: 저장은 안 함 (첫 번째 fileUrl로 계산)
+        */
+        thumbnailUrl: {
             type: String,
             trim: true,
+            default: null,
         },
 
-        // 첨부파일 배열 (S3 URL)
+        // 메모 이미지들
         fileUrl: {
             type: [String],
-            trim: true,
+            default: [],
         },
 
-        // 익명 여부
         isAnonymous: {
             type: Boolean,
             default: false,
         },
 
-        // 그룹 ID (여행/일상 묶음)
         groupId: {
             type: String,
             default: null,
             index: true,
         },
 
-        // 그룹 제목
         groupTitle: {
             type: String,
             trim: true,
             default: null,
         },
 
-        // 여행 day 정보
         day: {
             type: String,
             trim: true,
             default: null,
         },
 
-        // 조회 로그
         viewLogs: [
             {
                 ip: String,
@@ -93,10 +99,24 @@ const postSchema = new mongoose.Schema(
     },
     {
         timestamps: true,
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true },
     }
 );
 
-// ✅ 자동 증가 + groupId 생성
+/* ============================
+   썸네일 계산 (핵심)
+============================ */
+postSchema.virtual("resolvedThumbnail").get(function () {
+    if (this.category === "여행") {
+        return this.thumbnailUrl || null;
+    }
+    return this.fileUrl?.[0] || null;
+});
+
+/* ============================
+   자동 증가 + groupId
+============================ */
 postSchema.pre("save", async function (next) {
     if (this.isNew) {
         const counter = await Counter.findOneAndUpdate(
@@ -107,7 +127,6 @@ postSchema.pre("save", async function (next) {
         this.number = counter.seq;
     }
 
-    // 그룹 ID 생성 (여러 메모 묶음일 때만)
     if (!this.groupId && this.groupTitle) {
         this.groupId = generateUUID();
     }
@@ -115,7 +134,4 @@ postSchema.pre("save", async function (next) {
     next();
 });
 
-// 모델 생성
-const Post = mongoose.model("Post", postSchema);
-
-module.exports = Post;
+module.exports = mongoose.model("Post", postSchema);

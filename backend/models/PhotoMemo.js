@@ -2,34 +2,80 @@ const mongoose = require("mongoose");
 
 const photoMemoSchema = new mongoose.Schema(
     {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
 
-        // ✅ 일상 or 여행
-        type: { type: String, enum: ["일상", "여행"], default: "일상" },
+        category: {
+            type: String,
+            enum: ["일상", "여행"],
+            default: "일상",
+        },
 
-        // ✅ 일상일 경우 단일 날짜
-        date: { type: Date },
+        // 일상
+        date: Date,
 
-        // ✅ 여행일 경우
-        tripName: { type: String, trim: true },
-        tripStartDate: { type: Date },
-        tripEndDate: { type: Date },
-        day: { type: String }, // ex: 첫째날, 둘째날
-        activity: { type: String }, // ex: 맛집, 카페, 운동 등
+        // 여행
+        tripName: String,
+        tripStartDate: Date,
+        tripEndDate: Date,
+        day: String,
 
-        // ✅ 공통 필드
-        title: { type: String, required: true },
-        content: { type: String, trim: true, default: "" },
-        imageUrl: { type: String, required: true },
+        // 공통
+        title: {
+            type: String,
+            required: true,
+        },
+        content: {
+            type: String,
+            default: "",
+        },
 
-        // ✅ 그룹화용 필드 추가
-        groupId: { type: String, index: true, default: null },
-        groupTitle: { type: String, trim: true, default: null },
+        imageUrl: {
+            type: String,
+            required: true,
+        },
 
-        // ✅ 익명 여부 (있다면 같이 추가)
-        isAnonymous: { type: Boolean, default: false },
+        // 🔥 여행 대표 썸네일
+        thumbnailUrl: {
+            type: String,
+            default: null,
+        },
+
+        groupId: {
+            type: String,
+            index: true,
+            default: null,
+        },
+        groupTitle: {
+            type: String,
+            default: null,
+        },
+
+        isAnonymous: {
+            type: Boolean,
+            default: false,
+        },
     },
-    { timestamps: true }
+    {
+        timestamps: true,
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true },
+    }
 );
+
+/**
+ * 썸네일 규칙 (프론트 단순화용)
+ * - 여행: thumbnailUrl
+ * - 일상: imageUrl
+ */
+photoMemoSchema.virtual("resolvedThumbnail").get(function () {
+    if (this.category === "여행") {
+        return this.thumbnailUrl;
+    }
+    return this.imageUrl;
+});
 
 module.exports = mongoose.model("PhotoMemo", photoMemoSchema);

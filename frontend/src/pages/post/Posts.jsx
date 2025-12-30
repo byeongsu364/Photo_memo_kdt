@@ -11,7 +11,7 @@ const Posts = ({
 
     return (
         <div className="posts-page">
-            <h2>📁 전체 게시글</h2>
+            <h2>전체 게시글</h2>
 
             <SearchBar onSearch={onSearch} />
 
@@ -20,32 +20,37 @@ const Posts = ({
             ) : (
                 <div className="posts-grid">
                     {groupEntries.map(([groupId, items]) => {
-                        /* 🔥 createdAt 기준 DAY1 보장 */
+                        // createdAt 기준 DAY 1 보장
                         const sortedItems = [...items].sort(
                             (a, b) =>
                                 new Date(a.createdAt) -
                                 new Date(b.createdAt)
                         );
 
-                        /* 🔥 썸네일 가진 memo 우선 찾기 */
-                        const thumbnailItem = sortedItems.find(
-                            (item) => item.thumbnailUrl
-                        );
-
                         const first = sortedItems[0];
 
+                        // 제목 (여행 제목 우선)
                         const title =
                             first.groupTitle || first.title;
 
-                        /* ✅ 대표 이미지 결정 */
+                        /*
+                          대표 썸네일 규칙 (프론트 최종)
+                          - 여행: thumbnailUrl
+                          - 일상: 첫 번째 memo.imageUrl
+                          - 백엔드에서 resolvedThumbnail 내려오면 그걸 우선 사용
+                        */
                         const representativeImage =
-                            thumbnailItem?.thumbnailUrl ||
-                            first.imageUrl;
+                            first.resolvedThumbnail ||
+                            first.thumbnailUrl ||
+                            first.imageUrl ||
+                            "/images/no-image.png";
 
+                        // 작성자
                         const userName = first.isAnonymous
                             ? "익명"
                             : first.user?.displayName || "user";
 
+                        // 날짜
                         const dateStr = new Date(
                             first.createdAt
                         ).toLocaleDateString("ko-KR", {
@@ -66,6 +71,7 @@ const Posts = ({
                                     <img
                                         src={representativeImage}
                                         alt={title}
+                                        loading="lazy"
                                     />
                                 </div>
 
@@ -75,7 +81,7 @@ const Posts = ({
                                         {dateStr}
                                     </p>
                                     <span className="post-user">
-                                        ✍️ {userName}
+                                        {userName}
                                     </span>
                                 </div>
                             </div>

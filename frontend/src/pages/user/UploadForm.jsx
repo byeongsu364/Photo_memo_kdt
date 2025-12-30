@@ -4,7 +4,7 @@ import { useUploadForm } from "./hooks/useUploadForm";
 
 const UploadForm = () => {
     const {
-        type,
+        category,
         date,
         tripStart,
         tripEnd,
@@ -18,7 +18,7 @@ const UploadForm = () => {
         setTripTitle,
         setIsAnonymous,
 
-        handleTypeChange,
+        handleCategoryChange,
         handleThumbnailChange,
         handleTripRange,
         addMemo,
@@ -32,10 +32,8 @@ const UploadForm = () => {
         getDayDate,
     } = useUploadForm();
 
-    /* 🔹 STEP은 여행에만 사용 */
     const [step, setStep] = useState(1);
 
-    /* 🔹 메모 드래그 상태 */
     const [dragMemo, setDragMemo] = useState({
         dayIndex: null,
         memoIndex: null,
@@ -47,20 +45,12 @@ const UploadForm = () => {
         tripEnd &&
         thumbnailPreview;
 
-    /* 🔹 메모 드래그 시작 */
     const handleMemoDragStart = (dayIndex, memoIndex) => {
         setDragMemo({ dayIndex, memoIndex });
     };
 
-    /* 🔹 메모 드롭 */
     const handleMemoDrop = (dayIndex, memoIndex) => {
-        if (
-            dragMemo.dayIndex === null ||
-            dragMemo.memoIndex === null
-        )
-            return;
-
-        // 다른 DAY로 이동 방지
+        if (dragMemo.dayIndex === null || dragMemo.memoIndex === null) return;
         if (dragMemo.dayIndex !== dayIndex) return;
 
         const updated = [...days];
@@ -71,33 +61,19 @@ const UploadForm = () => {
 
         updated[dayIndex].memos = memos;
         setDragMemo({ dayIndex: null, memoIndex: null });
-
-        // days 업데이트
-        updated.forEach((_, i) => {
-            if (i === dayIndex) {
-                updated[i] = {
-                    ...updated[i],
-                    memos,
-                };
-            }
-        });
     };
 
     return (
         <div className="upload-form">
             <h2>포토메모 업로드</h2>
 
-            {/* ✅ 카테고리 선택 */}
-            <select value={type} onChange={handleTypeChange}>
+            <select value={category} onChange={handleCategoryChange}>
                 <option value="일상">일상</option>
                 <option value="여행">여행</option>
             </select>
 
             <form onSubmit={handleSubmit}>
-                {/* =========================
-                   ✅ 일상 작성 (기존 그대로)
-                ========================= */}
-                {type === "일상" && (
+                {category === "일상" && (
                     <>
                         <input
                             type="date"
@@ -120,13 +96,10 @@ const UploadForm = () => {
                                                     type="button"
                                                     className="delete-btn"
                                                     onClick={() =>
-                                                        removeMemo(
-                                                            dayIndex,
-                                                            memoIndex
-                                                        )
+                                                        removeMemo(dayIndex, memoIndex)
                                                     }
                                                 >
-                                                    ❌
+                                                    삭제
                                                 </button>
                                             )}
                                         </div>
@@ -136,37 +109,24 @@ const UploadForm = () => {
                                             placeholder="제목"
                                             value={memo.title}
                                             onChange={(e) =>
-                                                handleChange(
-                                                    dayIndex,
-                                                    memoIndex,
-                                                    "title",
-                                                    e.target.value
-                                                )
+                                                handleChange(dayIndex, memoIndex, "title", e.target.value)
                                             }
                                             required
                                         />
+
                                         <textarea
                                             placeholder="내용"
                                             value={memo.content}
                                             onChange={(e) =>
-                                                handleChange(
-                                                    dayIndex,
-                                                    memoIndex,
-                                                    "content",
-                                                    e.target.value
-                                                )
+                                                handleChange(dayIndex, memoIndex, "content", e.target.value)
                                             }
                                         />
+
                                         <input
                                             type="file"
                                             accept="image/*"
                                             onChange={(e) =>
-                                                handleChange(
-                                                    dayIndex,
-                                                    memoIndex,
-                                                    "image",
-                                                    e.target.files[0]
-                                                )
+                                                handleChange(dayIndex, memoIndex, "image", e.target.files[0])
                                             }
                                             required
                                         />
@@ -178,7 +138,7 @@ const UploadForm = () => {
                                     className="add-btn"
                                     onClick={() => addMemo(dayIndex)}
                                 >
-                                    + 메모 추가
+                                    메모 추가
                                 </button>
                             </div>
                         ))}
@@ -188,9 +148,7 @@ const UploadForm = () => {
                                 <input
                                     type="checkbox"
                                     checked={isAnonymous}
-                                    onChange={(e) =>
-                                        setIsAnonymous(e.target.checked)
-                                    }
+                                    onChange={(e) => setIsAnonymous(e.target.checked)}
                                 />
                                 익명으로 게시하기
                             </label>
@@ -202,23 +160,14 @@ const UploadForm = () => {
                     </>
                 )}
 
-                {/* =========================
-                   ✅ 여행 작성 (STEP 적용)
-                ========================= */}
-                {type === "여행" && (
+                {category === "여행" && (
                     <>
-                        {/* STEP 진행 바 */}
                         <div className="step-bar">
-                            <span className={step === 1 ? "active" : ""}>
-                                STEP 1
-                            </span>
+                            <span className={step === 1 ? "active" : ""}>STEP 1</span>
                             <span className="step-sep">·</span>
-                            <span className={step === 2 ? "active" : ""}>
-                                STEP 2
-                            </span>
+                            <span className={step === 2 ? "active" : ""}>STEP 2</span>
                         </div>
 
-                        {/* STEP 1 */}
                         {step === 1 && (
                             <>
                                 <div className="trip-title">
@@ -226,11 +175,9 @@ const UploadForm = () => {
                                     <input
                                         type="text"
                                         value={tripTitle}
-                                        onChange={(e) =>
-                                            setTripTitle(e.target.value)
-                                        }
-                                        placeholder="2박3일 제주여행"
+                                        onChange={(e) => setTripTitle(e.target.value)}
                                         required
+                                        placeholder="여행 제목을 입력하세요"
                                     />
                                 </div>
 
@@ -238,24 +185,14 @@ const UploadForm = () => {
                                     <input
                                         type="date"
                                         value={tripStart}
-                                        onChange={(e) =>
-                                            handleTripRange(
-                                                e.target.value,
-                                                tripEnd
-                                            )
-                                        }
+                                        onChange={(e) => handleTripRange(e.target.value, tripEnd)}
                                         required
                                     />
                                     <span>~</span>
                                     <input
                                         type="date"
                                         value={tripEnd}
-                                        onChange={(e) =>
-                                            handleTripRange(
-                                                tripStart,
-                                                e.target.value
-                                            )
-                                        }
+                                        onChange={(e) => handleTripRange(tripStart, e.target.value)}
                                         required
                                     />
                                 </div>
@@ -271,6 +208,7 @@ const UploadForm = () => {
                                         <img
                                             src={thumbnailPreview}
                                             className="preview"
+                                            alt="thumbnail preview"
                                         />
                                     )}
                                 </div>
@@ -286,7 +224,6 @@ const UploadForm = () => {
                             </>
                         )}
 
-                        {/* STEP 2 */}
                         {step === 2 && (
                             <>
                                 {days.map((day, dayIndex) => (
@@ -294,27 +231,15 @@ const UploadForm = () => {
                                         key={dayIndex}
                                         className="day-section"
                                         draggable
-                                        onDragStart={() =>
-                                            handleDragStart(dayIndex)
-                                        }
-                                        onDragOver={(e) =>
-                                            e.preventDefault()
-                                        }
-                                        onDrop={() =>
-                                            handleDrop(dayIndex)
-                                        }
+                                        onDragStart={() => handleDragStart(dayIndex)}
+                                        onDragOver={(e) => e.preventDefault()}
+                                        onDrop={() => handleDrop(dayIndex)}
                                     >
                                         <div className="day-header">
                                             <h3 className="day-title">
-                                                {day.label} (
-                                                {getDayDate(dayIndex)})
+                                                {day.label} ({getDayDate(dayIndex)})
                                             </h3>
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    removeDay(dayIndex)
-                                                }
-                                            >
+                                            <button type="button" onClick={() => removeDay(dayIndex)}>
                                                 DAY 삭제
                                             </button>
                                         </div>
@@ -324,21 +249,9 @@ const UploadForm = () => {
                                                 key={memoIndex}
                                                 className="entry-box"
                                                 draggable
-                                                onDragStart={() =>
-                                                    handleMemoDragStart(
-                                                        dayIndex,
-                                                        memoIndex
-                                                    )
-                                                }
-                                                onDragOver={(e) =>
-                                                    e.preventDefault()
-                                                }
-                                                onDrop={() =>
-                                                    handleMemoDrop(
-                                                        dayIndex,
-                                                        memoIndex
-                                                    )
-                                                }
+                                                onDragStart={() => handleMemoDragStart(dayIndex, memoIndex)}
+                                                onDragOver={(e) => e.preventDefault()}
+                                                onDrop={() => handleMemoDrop(dayIndex, memoIndex)}
                                             >
                                                 <div className="entry-header">
                                                     <span className="entry-label">
@@ -349,14 +262,9 @@ const UploadForm = () => {
                                                         <button
                                                             type="button"
                                                             className="delete-btn"
-                                                            onClick={() =>
-                                                                removeMemo(
-                                                                    dayIndex,
-                                                                    memoIndex
-                                                                )
-                                                            }
+                                                            onClick={() => removeMemo(dayIndex, memoIndex)}
                                                         >
-                                                            ❌
+                                                            삭제
                                                         </button>
                                                     )}
                                                 </div>
@@ -366,37 +274,24 @@ const UploadForm = () => {
                                                     placeholder="제목"
                                                     value={memo.title}
                                                     onChange={(e) =>
-                                                        handleChange(
-                                                            dayIndex,
-                                                            memoIndex,
-                                                            "title",
-                                                            e.target.value
-                                                        )
+                                                        handleChange(dayIndex, memoIndex, "title", e.target.value)
                                                     }
                                                     required
                                                 />
+
                                                 <textarea
                                                     placeholder="내용"
                                                     value={memo.content}
                                                     onChange={(e) =>
-                                                        handleChange(
-                                                            dayIndex,
-                                                            memoIndex,
-                                                            "content",
-                                                            e.target.value
-                                                        )
+                                                        handleChange(dayIndex, memoIndex, "content", e.target.value)
                                                     }
                                                 />
+
                                                 <input
                                                     type="file"
                                                     accept="image/*"
                                                     onChange={(e) =>
-                                                        handleChange(
-                                                            dayIndex,
-                                                            memoIndex,
-                                                            "image",
-                                                            e.target.files[0]
-                                                        )
+                                                        handleChange(dayIndex, memoIndex, "image", e.target.files[0])
                                                     }
                                                     required
                                                 />
@@ -405,12 +300,10 @@ const UploadForm = () => {
 
                                         <button
                                             type="button"
-                                            onClick={() =>
-                                                addMemo(dayIndex)
-                                            }
+                                            onClick={() => addMemo(dayIndex)}
                                             className="btn plus-btn"
                                         >
-                                            + 메모 추가
+                                            메모 추가
                                         </button>
                                     </div>
                                 ))}
@@ -422,6 +315,7 @@ const UploadForm = () => {
                                 >
                                     이전 단계
                                 </button>
+
                                 <button type="submit" className="btn submit-btn">
                                     저장하기
                                 </button>

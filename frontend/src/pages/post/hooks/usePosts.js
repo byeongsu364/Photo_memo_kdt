@@ -8,7 +8,9 @@ export const usePosts = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
-    /* 🔹 최초 로드 */
+    /* ======================================================
+       🔹 최초 로드
+    ====================================================== */
     useEffect(() => {
         let mounted = true;
 
@@ -47,10 +49,11 @@ export const usePosts = () => {
         };
     }, []);
 
-    /* 🔹 검색 */
+    /* ======================================================
+       🔹 검색 (DAY 제목 포함)
+    ====================================================== */
     const onSearch = (query) => {
         const q = (query || "").trim();
-
         if (!q) {
             setFilteredGroups(groupedPosts);
             return;
@@ -60,8 +63,14 @@ export const usePosts = () => {
 
         const filtered = Object.entries(groupedPosts).reduce(
             (acc, [groupKey, items]) => {
-                const first = items?.[0];
-                if (!first) return acc;
+                if (!items?.length) return acc;
+
+                // 🔥 DAY1 기준 post
+                const sorted = [...items].sort(
+                    (a, b) =>
+                        new Date(a.createdAt) - new Date(b.createdAt)
+                );
+                const first = sorted[0];
 
                 const title = first.groupTitle || first.title || "";
                 const userName = first.isAnonymous
@@ -77,10 +86,18 @@ export const usePosts = () => {
                     .replace(/\.\s/g, "-")
                     .toLowerCase();
 
+                // 🔹 DAY 제목 검색 포함 (여행 내 모든 day)
+                const dayMatched = items.some((post) =>
+                    (post.day || "")
+                        .toLowerCase()
+                        .includes(lower)
+                );
+
                 const match =
                     title.toLowerCase().includes(lower) ||
                     userName.toLowerCase().includes(lower) ||
-                    dateStr.includes(lower);
+                    dateStr.includes(lower) ||
+                    dayMatched;
 
                 if (match) acc[groupKey] = items;
                 return acc;
@@ -91,21 +108,17 @@ export const usePosts = () => {
         setFilteredGroups(filtered);
     };
 
-    /* 🔹 카드 클릭 (🔥 그룹 전체 보기) */
+    /* ======================================================
+       🔹 카드 클릭 (비회원도 보기 가능)
+    ====================================================== */
     const onClickGroup = (groupKey) => {
-        const isLoggedIn = !!localStorage.getItem("token");
-
-        if (!isLoggedIn) {
-            alert("회원만 이용 가능합니다.");
-            navigate("/admin/login");
-            return;
-        }
-
-        // ✅ 그룹 상세는 반드시 groupId로 이동
+        // ✅ 비회원도 상세 보기 가능
         navigate(`/posts/${groupKey}`);
     };
 
-    /* ✅ UI에서 그대로 쓰는 형태 */
+    /* ======================================================
+       ✅ UI에서 그대로 사용
+    ====================================================== */
     return {
         loading,
         groupedPosts: filteredGroups,
